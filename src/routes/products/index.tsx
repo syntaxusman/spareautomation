@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowUpDown, ChevronRight, Filter, SlidersHorizontal } from "lucide-react";
+import { ArrowUpDown, ChevronRight, Filter, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import automation from "@/assets/Automation pic.jpg";
@@ -183,6 +183,7 @@ function ProductsCataloguePage() {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(
     activeGroup?.handle ?? null,
   );
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
   const availability = search.availability;
   const sort = search.sort;
@@ -311,42 +312,51 @@ function ProductsCataloguePage() {
 
       <main
         id="main-content"
-        className="mx-auto grid min-w-0 max-w-[1600px] grid-cols-1 gap-6 px-4 py-8 md:px-6 lg:grid-cols-[300px_minmax(0,1fr)]"
+        className="mx-auto grid min-w-0 max-w-[1600px] grid-cols-1 gap-5 px-4 py-6 md:gap-6 md:px-6 md:py-8 lg:grid-cols-[300px_minmax(0,1fr)]"
       >
         <aside
           ref={sidebarRef}
           aria-label="Product collections"
           className="h-fit min-w-0 overflow-hidden border border-rule bg-surface lg:sticky lg:top-[116px] lg:max-h-[calc(100dvh-116px)] lg:self-start lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-gutter:auto] lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden xl:top-[180px] xl:max-h-[calc(100dvh-180px)]"
         >
-          <div className="border-b border-rule p-5">
-            <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-ink-muted">
-              <Filter className="h-4 w-4 text-accent" />
-              Categories
+          <div className="border-b border-rule p-3 sm:p-4 lg:p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.25em] sm:tracking-[0.3em] text-ink-muted">
+                <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent" />
+                Categories
+              </div>
+              <span className="inline-block max-w-[150px] truncate border border-accent/30 bg-accent/10 px-2 py-0.5 font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-accent lg:hidden">
+                {isAll
+                  ? "All"
+                  : activeCollection?.label ??
+                    collectionFilters.find((c) => c.handle === activeCategory)?.label ??
+                    "All"}
+              </span>
             </div>
           </div>
 
-          <div className="p-3">
+          <div className="max-lg:max-h-[240px] max-lg:overflow-y-auto max-lg:overscroll-contain p-2 sm:p-3 lg:p-3">
             <Link
               to="/products"
               search={getCatalogueSearch("all")}
               aria-current={activeCategory === "all" ? "page" : undefined}
               data-catalog-active={activeCategory === "all"}
               onClick={() => setExpandedCategory(null)}
-              className={`flex w-full items-center justify-between border px-4 py-4 text-left transition-colors ${
+              className={`flex w-full items-center justify-between border px-3 py-2.5 sm:px-4 sm:py-3 lg:px-4 lg:py-4 text-left transition-colors ${
                 activeCategory === "all"
                   ? "border-accent bg-accent/10"
                   : "border-transparent hover:border-rule hover:bg-background"
               }`}
             >
-              <span>
-                <span className="block font-display text-sm font-bold uppercase tracking-tight">
+              <span className="min-w-0">
+                <span className="block font-display text-xs sm:text-sm font-bold uppercase tracking-tight">
                   All Products
                 </span>
-                <span className="mt-1 block font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted">
+                <span className="mt-0.5 block truncate font-mono text-[9px] uppercase tracking-[0.14em] text-ink-muted sm:text-[10px] sm:tracking-[0.18em] lg:mt-1 lg:whitespace-normal">
                   Complete catalogue
                 </span>
               </span>
-              <ChevronRight className="h-4 w-4 text-accent" />
+              <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent" />
             </Link>
 
             {displayedCategoryGroups.map((category) => {
@@ -358,7 +368,7 @@ function ProductsCataloguePage() {
               );
 
               return (
-                <div key={category.handle} className="mt-2">
+                <div key={category.handle} className="mt-1.5 sm:mt-2">
                   <div
                     className={`flex w-full items-stretch border transition-colors ${
                       activeCategory === parent.handle
@@ -374,12 +384,12 @@ function ProductsCataloguePage() {
                       aria-current={activeCategory === parent.handle ? "page" : undefined}
                       data-catalog-active={activeCategory === parent.handle}
                       onClick={() => setExpandedCategory(category.handle)}
-                      className="min-w-0 flex-1 px-4 py-4 text-left"
+                      className="min-w-0 flex-1 px-3 py-2.5 sm:px-4 sm:py-3 lg:px-4 lg:py-4 text-left"
                     >
-                      <span className="block font-display text-sm font-bold uppercase tracking-tight">
+                      <span className="block truncate font-display text-xs sm:text-sm font-bold uppercase tracking-tight lg:whitespace-normal">
                         {parent.label}
                       </span>
-                      <span className="mt-1 block font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted">
+                      <span className="mt-0.5 block truncate font-mono text-[9px] uppercase tracking-[0.14em] text-ink-muted sm:text-[10px] sm:tracking-[0.18em] lg:mt-1 lg:whitespace-normal">
                         {presentation.get(parent.handle)?.description ?? categoryDescriptions[parent.handle] ?? parent.description}
                       </span>
                     </Link>
@@ -389,10 +399,10 @@ function ProductsCataloguePage() {
                       aria-controls={`catalogue-group-${category.handle}`}
                       aria-label={`${expanded ? "Collapse" : "Expand"} ${parent.label}`}
                       onClick={() => setExpandedCategory(expanded ? null : category.handle)}
-                      className="flex w-11 shrink-0 items-center justify-center text-accent hover:bg-accent/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
+                      className="flex w-10 sm:w-11 shrink-0 items-center justify-center text-accent hover:bg-accent/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
                     >
                       <ChevronRight
-                        className={`h-4 w-4 transition-transform ${expanded ? "rotate-90" : ""}`}
+                        className={`h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform ${expanded ? "rotate-90" : ""}`}
                       />
                     </button>
                   </div>
@@ -406,16 +416,16 @@ function ProductsCataloguePage() {
                           search={getCatalogueSearch(collection.handle)}
                           aria-current={activeCategory === collection.handle ? "page" : undefined}
                           data-catalog-active={activeCategory === collection.handle}
-                          className={`flex w-full items-center justify-between border border-t-0 px-4 py-2.5 pl-7 text-left transition-colors ${
+                          className={`flex w-full items-center justify-between border border-t-0 px-3 py-2 pl-6 sm:px-4 sm:py-2.5 sm:pl-7 text-left transition-colors ${
                             activeCategory === collection.handle
                               ? "border-accent bg-accent/10"
                               : "border-transparent hover:border-rule hover:bg-background"
                           }`}
                         >
-                          <span className="block font-display text-xs font-bold uppercase tracking-tight">
+                          <span className="block truncate font-display text-xs font-bold uppercase tracking-tight lg:whitespace-normal">
                             {collection.label}
                           </span>
-                          <ChevronRight className="h-4 w-4 shrink-0 text-accent" />
+                          <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-accent" />
                         </Link>
                       ))}
                     </div>

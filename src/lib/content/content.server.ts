@@ -74,8 +74,19 @@ export async function seedContentDefaults(): Promise<void> {
   }
 }
 
+let bundleCache: { data: ContentBundle; expires: number } | null = null;
+
+export function invalidateContentBundleCache(): void {
+  bundleCache = null;
+}
+
 /** Public reads never throw: malformed/missing/database content uses compiled defaults. */
 export async function loadPublishedContentBundle(): Promise<ContentBundle> {
+  const now = Date.now();
+  if (bundleCache && now < bundleCache.expires) {
+    return bundleCache.data;
+  }
+
   const result = getDefaultContentBundle();
   try {
     const rows = await getDb().select({
@@ -91,8 +102,10 @@ export async function loadPublishedContentBundle(): Promise<ContentBundle> {
         console.error(`[content] Invalid published document ${key}; using defaults:`, error);
       }
     }
+    bundleCache = { data: result, expires: now + 10_000 };
   } catch (error) {
     console.error("[content] Published content unavailable; using defaults:", error);
+    bundleCache = { data: result, expires: now + 5_000 };
   }
   return result;
 }
@@ -227,6 +240,7 @@ export async function publishContentDraft(key: ContentKey, staffId: number) {
       staffId, action: "content.published", targetType: "content", targetId: key,
       details: { version: nextVersion },
     });
+    invalidateContentBundleCache();
     return nextVersion;
   });
 }

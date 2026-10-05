@@ -208,7 +208,7 @@ export function Home() {
           {displayedPrimaryRanges.map((range, index) => (
             <article
               key={range.title}
-              className="hero-range group relative flex min-h-[440px] sm:min-h-[470px] md:min-h-[480px] items-stretch overflow-hidden border-b border-rule"
+              className="hero-range group relative flex min-h-[400px] sm:min-h-[450px] md:min-h-[480px] items-stretch overflow-hidden border-b border-rule"
             >
               <img
                 src={range.img}
@@ -222,7 +222,7 @@ export function Home() {
               <div className="absolute inset-0 bg-charcoal-deep/45" />
               <div className="absolute inset-0 bg-gradient-to-t from-charcoal-deep via-charcoal-deep/55 to-charcoal-deep/10" />
 
-              <div className="relative z-10 flex min-h-[440px] sm:min-h-[470px] min-w-0 w-full flex-col justify-end gap-3 p-3.5 sm:p-5 md:min-h-[480px] md:gap-6 md:p-8 lg:p-10">
+              <div className="relative z-10 flex min-h-[400px] sm:min-h-[450px] min-w-0 w-full flex-col justify-end gap-3 p-3.5 sm:p-5 md:min-h-[480px] md:gap-6 md:p-8 lg:p-10">
                 <div className="hero-range-title flex min-w-0 flex-col justify-end transition-all duration-500">
                   <Link
                     to="/products"
@@ -230,7 +230,7 @@ export function Home() {
                     className="block max-w-xl focus-visible:outline-white"
                   >
                     <h2
-                      className="break-words font-display text-[clamp(1.65rem,4.2vw,3.4rem)] font-extrabold uppercase leading-[0.95] tracking-tight text-white"
+                      className="break-words font-display text-[clamp(1.5rem,4.2vw,3.4rem)] font-extrabold uppercase leading-[0.95] tracking-tight text-white"
                       {...edit(`catalogue.ranges.${index}.title`, "Hero panel title")}
                     >
                       <HeroTitle title={range.title} accent={range.accent as "accent" | "amber"} />
@@ -245,7 +245,7 @@ export function Home() {
                         key={line.label}
                         to="/products"
                         search={getCatalogueSearch(line.category)}
-                        className={`group/item grid min-h-[54px] sm:min-h-[64px] grid-cols-[1fr_auto] items-center border border-white/12 bg-charcoal-deep/80 px-2 py-1.5 sm:px-3 sm:py-2.5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm transition-colors ${
+                        className={`group/item grid min-h-[50px] sm:min-h-[64px] grid-cols-[1fr_auto] items-center border border-white/12 bg-charcoal-deep/80 px-2 py-1.5 sm:px-3 sm:py-2.5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm transition-colors ${
                           range.accent === "amber"
                             ? "hover:border-amber hover:bg-amber/10 focus-visible:border-amber"
                             : "hover:border-accent hover:bg-accent/15 focus-visible:border-accent"
@@ -272,7 +272,7 @@ export function Home() {
                           </span>
                         </span>
                         <ChevronRight
-                          className={`ml-1.5 sm:ml-3 h-3 w-3 shrink-0 transition-transform group-hover/item:translate-x-0.5 ${
+                          className={`ml-1 sm:ml-3 h-3 w-3 shrink-0 transition-transform group-hover/item:translate-x-0.5 ${
                             range.accent === "amber" ? "text-amber" : "text-accent"
                           }`}
                         />
@@ -294,13 +294,13 @@ export function Home() {
           ))}
         </section>
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="grid grid-cols-2 lg:grid-cols-4">
           {displayedCategories.map((category) => (
             <Link
               key={category.title}
               to="/products"
               search={getCatalogueSearch(category.category)}
-              className="group flex min-h-[280px] sm:min-h-[320px] md:min-h-[360px] flex-col border-b border-rule bg-surface lg:border-l"
+              className="group flex min-h-[190px] sm:min-h-[260px] md:min-h-[320px] lg:min-h-[360px] flex-col border-b border-rule bg-surface border-r last:border-r-0 sm:[&:nth-child(2n)]:border-r-0 lg:[&:nth-child(2n)]:border-r lg:border-l lg:first:border-l-0"
             >
               <div className="relative flex-1 overflow-hidden bg-[oklch(0.96_0.005_250)]">
                 <img
@@ -313,16 +313,16 @@ export function Home() {
                   className="h-full w-full object-cover mix-blend-multiply transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
-              <div className="flex items-center justify-between border-t border-rule px-4 py-4 sm:px-5 sm:py-5 transition-colors group-hover:bg-charcoal-deep group-hover:text-white">
-                <div>
+              <div className="flex items-center justify-between border-t border-rule px-3 py-3 sm:px-5 sm:py-5 transition-colors group-hover:bg-charcoal-deep group-hover:text-white">
+                <div className="min-w-0 pr-1">
                   <h2
-                    className="font-display text-[14px] sm:text-[15px] font-bold uppercase tracking-tight"
+                    className="break-words font-display text-[12px] sm:text-[14px] md:text-[15px] font-bold uppercase tracking-tight"
                     {...edit(`catalogue.tiles.${category.tileIndex}.title`, "Category tile title")}
                   >
                     {category.title}
                   </h2>
                 </div>
-                <ChevronRight className="h-4 w-4 shrink-0 text-ink-muted transition-all group-hover:translate-x-1 group-hover:text-accent" />
+                <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-ink-muted transition-all group-hover:translate-x-1 group-hover:text-accent" />
               </div>
             </Link>
           ))}
