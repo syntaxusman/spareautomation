@@ -223,6 +223,27 @@ test("selecting a category updates the catalogue hero heading and metadata", asy
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/concrete/i);
 });
 
+test("mobile category selection brings products into view", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "Mobile catalogue behavior");
+  await page.goto("/products?category=all&availability=all&sort=newest");
+
+  const results = page.locator("#catalogue-results");
+  const viewProducts = page.getByRole("button", { name: /View products/i });
+  await expect(viewProducts).toBeVisible();
+  await expect(viewProducts).toContainText("Results are shown below");
+
+  await page
+    .getByRole("complementary", { name: "Product collections" })
+    .getByRole("link", { name: /Asphalt \/ Blacktop Spares/i })
+    .click();
+
+  await expect(page).toHaveURL(/category=asphalt/);
+  await expect
+    .poll(() => results.evaluate((element) => element.getBoundingClientRect().top))
+    .toBeLessThan(page.viewportSize()!.height);
+  await expect(results.getByText("Asphalt / Blacktop Spares", { exact: true })).toBeVisible();
+});
+
 test("every product exposes tabbed support content and useful empty states", async ({ page }) => {
   test.slow();
   await page.goto("/products");

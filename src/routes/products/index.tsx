@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowUpDown, ChevronRight, Filter, SlidersHorizontal, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowDown, ArrowUpDown, ChevronRight, Filter, SlidersHorizontal, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import automation from "@/assets/Automation pic.jpg";
 import asphalt from "@/assets/asphalt-plant.jpg";
@@ -185,6 +185,8 @@ function ProductsCataloguePage() {
   );
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
+  const resultsRef = useRef<HTMLElement>(null);
+  const revealResultsAfterNavigationRef = useRef(false);
   const availability = search.availability;
   const sort = search.sort;
   const updateSearch = (updates: Partial<typeof search>) =>
@@ -192,6 +194,23 @@ function ProductsCataloguePage() {
       search: (previous: typeof search) => ({ ...previous, ...updates }),
       replace: true,
     });
+
+  const revealResults = useCallback(() => {
+    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  const handleCategorySelection = (selectedHandle: string, expandedHandle: string | null) => {
+    setExpandedCategory(expandedHandle);
+
+    if (!window.matchMedia("(max-width: 1023px)").matches) return;
+
+    if (selectedHandle === activeCategory) {
+      requestAnimationFrame(revealResults);
+      return;
+    }
+
+    revealResultsAfterNavigationRef.current = true;
+  };
 
   useEffect(() => {
     setProducts(initialPage.products);
@@ -202,6 +221,15 @@ function ProductsCataloguePage() {
   useEffect(() => {
     setExpandedCategory(activeGroup?.handle ?? null);
   }, [activeGroup?.handle]);
+
+  useEffect(() => {
+    if (!revealResultsAfterNavigationRef.current) return;
+
+    revealResultsAfterNavigationRef.current = false;
+    const frame = requestAnimationFrame(revealResults);
+
+    return () => cancelAnimationFrame(frame);
+  }, [activeCategory, initialPage, revealResults]);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -245,14 +273,14 @@ function ProductsCataloguePage() {
     <div className="min-h-screen bg-background text-ink">
       <SiteHeader />
 
-      <section className="relative flex min-h-[150px] min-w-0 items-center overflow-hidden md:min-h-[180px]">
+      <section className="relative flex min-h-[120px] min-w-0 items-center overflow-hidden md:min-h-[140px] max-h-[175px]">
         <img
           src={heroImage}
           alt={heroImageAlt}
           className="absolute inset-0 h-full w-full scale-105 object-cover blur-[2px]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-charcoal-deep via-charcoal-deep/70 to-charcoal-deep/10" />
-        <div className="relative mx-auto w-full max-w-[1600px] px-4 py-6 md:px-6 md:py-8">
+        <div className="relative mx-auto w-full max-w-[1600px] px-4 py-3 md:px-6 md:py-4">
           <div
             className="mb-2 flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.3em] text-white/60 md:text-[10px]"
             {...(isAll ? edit(`product.listingEyebrow`, "Eyebrow") : {})}
@@ -312,7 +340,7 @@ function ProductsCataloguePage() {
 
       <main
         id="main-content"
-        className="mx-auto grid min-w-0 max-w-[1600px] grid-cols-1 gap-5 px-4 py-6 md:gap-6 md:px-6 md:py-8 lg:grid-cols-[300px_minmax(0,1fr)]"
+        className="mx-auto grid min-w-0 max-w-[1600px] grid-cols-1 gap-6 px-4 py-8 md:px-6 lg:grid-cols-[300px_minmax(0,1fr)] lg:min-h-[900px]"
       >
         <aside
           ref={sidebarRef}
@@ -339,9 +367,10 @@ function ProductsCataloguePage() {
             <Link
               to="/products"
               search={getCatalogueSearch("all")}
+              resetScroll={false}
               aria-current={activeCategory === "all" ? "page" : undefined}
               data-catalog-active={activeCategory === "all"}
-              onClick={() => setExpandedCategory(null)}
+              onClick={() => handleCategorySelection("all", null)}
               className={`flex w-full items-center justify-between border px-3 py-2.5 sm:px-4 sm:py-3 lg:px-4 lg:py-4 text-left transition-colors ${
                 activeCategory === "all"
                   ? "border-accent bg-accent/10"
@@ -381,9 +410,10 @@ function ProductsCataloguePage() {
                     <Link
                       to="/products"
                       search={getCatalogueSearch(parent.handle)}
+                      resetScroll={false}
                       aria-current={activeCategory === parent.handle ? "page" : undefined}
                       data-catalog-active={activeCategory === parent.handle}
-                      onClick={() => setExpandedCategory(category.handle)}
+                      onClick={() => handleCategorySelection(parent.handle, category.handle)}
                       className="min-w-0 flex-1 px-3 py-2.5 sm:px-4 sm:py-3 lg:px-4 lg:py-4 text-left"
                     >
                       <span className="block truncate font-display text-xs sm:text-sm font-bold uppercase tracking-tight lg:whitespace-normal">
@@ -414,8 +444,12 @@ function ProductsCataloguePage() {
                           key={collection.handle}
                           to="/products"
                           search={getCatalogueSearch(collection.handle)}
+                          resetScroll={false}
                           aria-current={activeCategory === collection.handle ? "page" : undefined}
                           data-catalog-active={activeCategory === collection.handle}
+                          onClick={() =>
+                            handleCategorySelection(collection.handle, category.handle)
+                          }
                           className={`flex w-full items-center justify-between border border-t-0 px-3 py-2 pl-6 sm:px-4 sm:py-2.5 sm:pl-7 text-left transition-colors ${
                             activeCategory === collection.handle
                               ? "border-accent bg-accent/10"
@@ -434,9 +468,30 @@ function ProductsCataloguePage() {
               );
             })}
           </div>
+
+          <button
+            type="button"
+            aria-controls="catalogue-results"
+            onClick={revealResults}
+            className="flex w-full items-center justify-between border-t border-accent/30 bg-accent px-4 py-3 text-left text-accent-foreground lg:hidden"
+          >
+            <span>
+              <span className="block font-display text-sm font-extrabold uppercase tracking-tight">
+                View products
+              </span>
+              <span className="mt-0.5 block font-mono text-[9px] font-bold uppercase tracking-[0.16em] opacity-80">
+                Results are shown below
+              </span>
+            </span>
+            <ArrowDown className="h-5 w-5 shrink-0" aria-hidden="true" />
+          </button>
         </aside>
 
-        <section>
+        <section
+          ref={resultsRef}
+          id="catalogue-results"
+          className="min-w-0 scroll-mt-20 lg:min-h-[800px]"
+        >
           <div className="border border-rule bg-surface p-4 md:p-5">
             <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
               <div className="min-w-0">
