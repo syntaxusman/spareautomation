@@ -276,7 +276,7 @@ function ProductGallery({
   activeImage: ShopifyProduct["images"][number] | undefined;
   onSelectImage: (image: ShopifyProduct["images"][number]) => void;
 }) {
-  const { enlargeHint, imagePendingLabel } = useContent().product;
+  const { imagePendingLabel } = useContent().product;
   const [viewerOpen, setViewerOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const activeIndex = activeImage
@@ -313,9 +313,8 @@ function ProductGallery({
               alt={activeImage.altText ?? productTitle}
               className="h-full w-full object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-[1.02]"
             />
-            <span className="absolute right-3 top-3 inline-flex min-h-10 items-center gap-2 bg-charcoal-deep/90 px-3 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-white shadow-md">
+            <span aria-hidden="true" className="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center bg-charcoal-deep/90 text-white shadow-md">
               <Maximize2 className="h-4 w-4" aria-hidden="true" />
-              {enlargeHint}
             </span>
           </button>
         ) : (

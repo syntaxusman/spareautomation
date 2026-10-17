@@ -77,6 +77,18 @@ test("authentication controls and metadata are accessible", async ({ page }) => 
   );
 });
 
+test("Shopify password-reset links open the new-password form", async ({ page }) => {
+  await page.goto("/account/reset/123456789/0123456789abcdef0123456789abcdef");
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByRole("heading", { name: "Reset password" })).toBeVisible();
+  await page.getByLabel("New password", { exact: true }).fill("new-password-123");
+  await page
+    .getByLabel("Confirm new password", { exact: true })
+    .fill("different-password-123");
+  await page.getByRole("button", { name: "Set new password" }).click();
+  await expect(page.getByRole("alert")).toHaveText("The passwords do not match.");
+});
+
 test("contact methods are actionable and consistent", async ({ page }) => {
   await page.goto("/contact-us");
   await expect(page.getByRole("link", { name: /Technical Sales/ })).toHaveAttribute(
@@ -281,7 +293,9 @@ test("every product exposes tabbed support content and useful empty states", asy
   );
   expect(inclusivePrice).toBeCloseTo(exclusivePrice * 1.2, 2);
 
-  await page.getByRole("button", { name: /^Enlarge / }).click();
+  const enlargeButton = page.getByRole("button", { name: /^Enlarge / });
+  await expect(enlargeButton).toHaveText("");
+  await enlargeButton.click();
   const imageViewer = page.getByRole("dialog");
   await expect(imageViewer).toBeVisible();
   await imageViewer.getByRole("button", { name: "Zoom in" }).click();

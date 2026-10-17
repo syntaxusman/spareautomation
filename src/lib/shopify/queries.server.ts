@@ -560,6 +560,44 @@ export async function recoverCustomerPassword(email: string) {
   return data.customerRecover;
 }
 
+export async function resetCustomerPassword(
+  customerId: string,
+  resetToken: string,
+  password: string,
+) {
+  const data = await shopifyStorefront<{
+    customerReset: {
+      customerAccessToken?: {
+        accessToken: string;
+        expiresAt: string;
+      } | null;
+      customerUserErrors: CustomerUserError[];
+    };
+  }>(
+    `#graphql
+      mutation CustomerReset($id: ID!, $input: CustomerResetInput!) {
+        customerReset(id: $id, input: $input) {
+          customerAccessToken {
+            accessToken
+            expiresAt
+          }
+          customerUserErrors {
+            code
+            field
+            message
+          }
+        }
+      }
+    `,
+    {
+      id: `gid://shopify/Customer/${customerId}`,
+      input: { password, resetToken },
+    },
+  );
+
+  return data.customerReset;
+}
+
 export async function getCustomer(customerAccessToken: string) {
   const data = await shopifyStorefront<{
     customer?: {

@@ -36,7 +36,8 @@ function ForgotPasswordPage() {
     const email = String(new FormData(event.currentTarget).get("email") ?? "");
     try {
       const response = await requestShopifyPasswordReset({ data: { email } });
-      if (response.errors.length) setError(response.errors.map((item) => item.message).join(" "));
+      const actionableErrors = response.errors.filter((item) => item.code !== "UNIDENTIFIED_CUSTOMER");
+      if (actionableErrors.length) setError(actionableErrors.map((item) => item.message).join(" "));
       else setMessage(messages["auth.resetSent"]);
     } catch {
       setError(messages["auth.resetFailed"]);

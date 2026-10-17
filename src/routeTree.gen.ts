@@ -57,6 +57,7 @@ import { Route as ContentMediaIdFilenameRouteImport } from './routes/content-med
 import { Route as AdminSubmissionsIdRouteImport } from './routes/admin/submissions.$id'
 import { Route as AdminContentKeyRouteImport } from './routes/admin/content.$key'
 import { Route as AdminContentKeyPreviewRouteImport } from './routes/admin/content.$key.preview'
+import { Route as AccountResetIdTokenRouteImport } from './routes/account_.reset.$id.$token'
 
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
@@ -298,6 +299,11 @@ const AdminContentKeyPreviewRoute = AdminContentKeyPreviewRouteImport.update({
   path: '/preview',
   getParentRoute: () => AdminContentKeyRoute,
 } as any)
+const AccountResetIdTokenRoute = AccountResetIdTokenRouteImport.update({
+  id: '/account_/reset/$id/$token',
+  path: '/account/reset/$id/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -347,6 +353,7 @@ export interface FileRoutesByFullPath {
   '/content-media/$id/$filename': typeof ContentMediaIdFilenameRoute
   '/admin/content/': typeof AdminContentIndexRoute
   '/admin/submissions/': typeof AdminSubmissionsIndexRoute
+  '/account/reset/$id/$token': typeof AccountResetIdTokenRoute
   '/admin/content/$key/preview': typeof AdminContentKeyPreviewRoute
 }
 export interface FileRoutesByTo {
@@ -397,6 +404,7 @@ export interface FileRoutesByTo {
   '/content-media/$id/$filename': typeof ContentMediaIdFilenameRoute
   '/admin/content': typeof AdminContentIndexRoute
   '/admin/submissions': typeof AdminSubmissionsIndexRoute
+  '/account/reset/$id/$token': typeof AccountResetIdTokenRoute
   '/admin/content/$key/preview': typeof AdminContentKeyPreviewRoute
 }
 export interface FileRoutesById {
@@ -448,6 +456,7 @@ export interface FileRoutesById {
   '/content-media/$id/$filename': typeof ContentMediaIdFilenameRoute
   '/admin/content/': typeof AdminContentIndexRoute
   '/admin/submissions/': typeof AdminSubmissionsIndexRoute
+  '/account_/reset/$id/$token': typeof AccountResetIdTokenRoute
   '/admin/content/$key/preview': typeof AdminContentKeyPreviewRoute
 }
 export interface FileRouteTypes {
@@ -500,6 +509,7 @@ export interface FileRouteTypes {
     | '/content-media/$id/$filename'
     | '/admin/content/'
     | '/admin/submissions/'
+    | '/account/reset/$id/$token'
     | '/admin/content/$key/preview'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -550,6 +560,7 @@ export interface FileRouteTypes {
     | '/content-media/$id/$filename'
     | '/admin/content'
     | '/admin/submissions'
+    | '/account/reset/$id/$token'
     | '/admin/content/$key/preview'
   id:
     | '__root__'
@@ -600,6 +611,7 @@ export interface FileRouteTypes {
     | '/content-media/$id/$filename'
     | '/admin/content/'
     | '/admin/submissions/'
+    | '/account_/reset/$id/$token'
     | '/admin/content/$key/preview'
   fileRoutesById: FileRoutesById
 }
@@ -651,6 +663,7 @@ export interface RootRouteChildren {
   ContentMediaIdFilenameRoute: typeof ContentMediaIdFilenameRoute
   AdminContentIndexRoute: typeof AdminContentIndexRoute
   AdminSubmissionsIndexRoute: typeof AdminSubmissionsIndexRoute
+  AccountResetIdTokenRoute: typeof AccountResetIdTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -991,6 +1004,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminContentKeyPreviewRouteImport
       parentRoute: typeof AdminContentKeyRoute
     }
+    '/account_/reset/$id/$token': {
+      id: '/account_/reset/$id/$token'
+      path: '/account/reset/$id/$token'
+      fullPath: '/account/reset/$id/$token'
+      preLoaderRoute: typeof AccountResetIdTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1054,6 +1074,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContentMediaIdFilenameRoute: ContentMediaIdFilenameRoute,
   AdminContentIndexRoute: AdminContentIndexRoute,
   AdminSubmissionsIndexRoute: AdminSubmissionsIndexRoute,
+  AccountResetIdTokenRoute: AccountResetIdTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

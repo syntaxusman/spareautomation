@@ -17,6 +17,7 @@ import {
   getProductsWithResources,
   removeCartLine,
   recoverCustomerPassword,
+  resetCustomerPassword,
   updateCartLine,
 } from "../shopify/queries.server";
 import { shopifyAdmin } from "../shopify/admin.server";
@@ -328,6 +329,45 @@ export const requestShopifyPasswordReset = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const result = await recoverCustomerPassword(data.email);
     return {
+      errors: result.customerUserErrors.map((error) => ({
+        code: error.code,
+        message: error.message,
+        field: error.field,
+      })),
+    };
+  });
+
+export const resetShopifyCustomerPassword = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      customerId: z.string().regex(/^\d+$/, "Invalid password-reset link"),
+      resetToken: z
+        .string()
+        .min(16, "Invalid password-reset link")
+        .max(256, "Invalid password-reset link")
+        .regex(/^[A-Za-z0-9_-]+$/, "Invalid password-reset link"),
+      password: z.string().min(8, "Password must be at least 8 characters").max(72),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const result = await resetCustomerPassword(data.customerId, data.resetToken, data.password);
+
+    if (result.customerAccessToken) {
+      const secret = process.env.APP_SESSION_SECRET;
+      if (secret) {
+        const session = await getServerSessionManager<{
+          customerAccessToken?: string;
+          expiresAt?: number;
+        }>(sessionConfig(secret));
+        await session.update({
+          customerAccessToken: result.customerAccessToken.accessToken,
+          expiresAt: new Date(result.customerAccessToken.expiresAt).getTime(),
+        });
+      }
+    }
+
+    return {
+      reset: Boolean(result.customerAccessToken),
       errors: result.customerUserErrors.map((error) => ({
         code: error.code,
         message: error.message,
