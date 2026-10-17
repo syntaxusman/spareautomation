@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2, UserPlus } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
@@ -40,6 +40,7 @@ function normalizePhoneForShopify(countryCode: string, phone: string) {
 }
 
 function RegisterPage() {
+  const navigate = useNavigate();
   const { functional } = useContent();
   const copy = functional.register;
   const edit = useEditable();
@@ -97,12 +98,29 @@ function RegisterPage() {
         return;
       }
 
+      if (response.activationRequired) {
+        setResult({
+          status: "success",
+          message:
+            "This account needs activation. We emailed you a secure link—open it to choose your password and finish here on Spares Automation.",
+        });
+        return;
+      }
+
+      if (!response.authenticated) {
+        setResult({
+          status: "error",
+          message: "Your account was created, but we could not sign you in. Please try signing in.",
+        });
+        return;
+      }
+
       setResult({
         status: "success",
-        message:
-          "Your account has been created. You can now sign in; follow any activation instructions Shopify sends by email.",
+        message: "Your account is ready and you are signed in.",
       });
       formElement.reset();
+      await navigate({ to: "/account" });
     } catch (error) {
       setResult({
         status: "error",

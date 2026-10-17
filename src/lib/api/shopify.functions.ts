@@ -3,6 +3,8 @@ import { z } from "zod";
 
 import {
   addCartLines,
+  activateCustomer,
+  activateCustomerByUrl,
   createCart,
   createCustomer,
   createCustomerAccessToken,
@@ -18,9 +20,11 @@ import {
   removeCartLine,
   recoverCustomerPassword,
   resetCustomerPassword,
+  resetCustomerPasswordByUrl,
   updateCartLine,
 } from "../shopify/queries.server";
 import { shopifyAdmin } from "../shopify/admin.server";
+import { getServerConfig } from "../config.server";
 import { clearSession, useSession as getServerSessionManager } from "@tanstack/react-start/server";
 
 const positiveQuantity = z.number().int().min(1).max(99);
@@ -268,6 +272,37 @@ async function clearCustomerAccessTokenSession() {
   });
 }
 
+async function saveCustomerAccessTokenSession(token: { accessToken: string; expiresAt: string }) {
+  const secret = process.env.APP_SESSION_SECRET;
+  if (!secret) return;
+
+  const session = await getServerSessionManager<{
+    customerAccessToken?: string;
+    expiresAt?: number;
+  }>(sessionConfig(secret));
+  await session.update({
+    customerAccessToken: token.accessToken,
+    expiresAt: new Date(token.expiresAt).getTime(),
+  });
+}
+
+function assertCustomerActionUrl(value: string, action: "activate" | "reset") {
+  const url = new URL(value);
+  const configuredDomain = getServerConfig().shopifyStoreDomain?.toLowerCase();
+  const expectedPath = `/account/${action}/`;
+
+  if (
+    url.protocol !== "https:" ||
+    !configuredDomain ||
+    url.hostname.toLowerCase() !== configuredDomain ||
+    !url.pathname.includes(expectedPath)
+  ) {
+    throw new Error(`This ${action} link is invalid.`);
+  }
+
+  return url.toString();
+}
+
 export const loginShopifyCustomer = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
@@ -281,19 +316,8 @@ export const loginShopifyCustomer = createServerFn({ method: "POST" })
       password: data.password,
     });
 
-    if (result.customerAccessToken) {
-      const secret = process.env.APP_SESSION_SECRET;
-      if (secret) {
-        const session = await getServerSessionManager<{
-          customerAccessToken?: string;
-          expiresAt?: number;
-        }>(sessionConfig(secret));
-        await session.update({
-          customerAccessToken: result.customerAccessToken.accessToken,
-          expiresAt: new Date(result.customerAccessToken.expiresAt).getTime(),
-        });
-      }
-    }
+    if (result.customerAccessToken)
+      await saveCustomerAccessTokenSession(result.customerAccessToken);
 
     return {
       authenticated: Boolean(result.customerAccessToken),
@@ -352,22 +376,87 @@ export const resetShopifyCustomerPassword = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const result = await resetCustomerPassword(data.customerId, data.resetToken, data.password);
 
-    if (result.customerAccessToken) {
-      const secret = process.env.APP_SESSION_SECRET;
-      if (secret) {
-        const session = await getServerSessionManager<{
-          customerAccessToken?: string;
-          expiresAt?: number;
-        }>(sessionConfig(secret));
-        await session.update({
-          customerAccessToken: result.customerAccessToken.accessToken,
-          expiresAt: new Date(result.customerAccessToken.expiresAt).getTime(),
-        });
-      }
-    }
+    if (result.customerAccessToken)
+      await saveCustomerAccessTokenSession(result.customerAccessToken);
 
     return {
       reset: Boolean(result.customerAccessToken),
+      errors: result.customerUserErrors.map((error) => ({
+        code: error.code,
+        message: error.message,
+        field: error.field,
+      })),
+    };
+  });
+
+export const resetShopifyCustomerPasswordByUrl = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      resetUrl: z.string().url("Invalid password-reset link").max(2048),
+      password: z.string().min(8, "Password must be at least 8 characters").max(72),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const resetUrl = assertCustomerActionUrl(data.resetUrl, "reset");
+    const result = await resetCustomerPasswordByUrl(resetUrl, data.password);
+
+    if (result.customerAccessToken)
+      await saveCustomerAccessTokenSession(result.customerAccessToken);
+
+    return {
+      reset: Boolean(result.customerAccessToken),
+      errors: result.customerUserErrors.map((error) => ({
+        code: error.code,
+        message: error.message,
+        field: error.field,
+      })),
+    };
+  });
+
+export const activateShopifyCustomer = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      customerId: z.string().regex(/^\d+$/, "Invalid activation link"),
+      activationToken: z
+        .string()
+        .min(16, "Invalid activation link")
+        .max(256, "Invalid activation link")
+        .regex(/^[A-Za-z0-9_-]+$/, "Invalid activation link"),
+      password: z.string().min(8, "Password must be at least 8 characters").max(72),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const result = await activateCustomer(data.customerId, data.activationToken, data.password);
+
+    if (result.customerAccessToken)
+      await saveCustomerAccessTokenSession(result.customerAccessToken);
+
+    return {
+      activated: Boolean(result.customerAccessToken),
+      errors: result.customerUserErrors.map((error) => ({
+        code: error.code,
+        message: error.message,
+        field: error.field,
+      })),
+    };
+  });
+
+export const activateShopifyCustomerByUrl = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      activationUrl: z.string().url("Invalid activation link").max(2048),
+      password: z.string().min(8, "Password must be at least 8 characters").max(72),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const activationUrl = assertCustomerActionUrl(data.activationUrl, "activate");
+    const result = await activateCustomerByUrl(activationUrl, data.password);
+
+    if (result.customerAccessToken)
+      await saveCustomerAccessTokenSession(result.customerAccessToken);
+
+    return {
+      activated: Boolean(result.customerAccessToken),
       errors: result.customerUserErrors.map((error) => ({
         code: error.code,
         message: error.message,
@@ -404,9 +493,46 @@ export const createShopifyCustomer = createServerFn({ method: "POST" })
       acceptsMarketing: data.acceptsMarketing,
     });
 
+    const activationRequired = result.customerUserErrors.some(
+      (error) => error.code === "CUSTOMER_DISABLED",
+    );
+    const creationErrors = result.customerUserErrors.filter(
+      (error) => error.code !== "CUSTOMER_DISABLED",
+    );
+
+    if (!result.customer || creationErrors.length || activationRequired) {
+      return {
+        customerId: result.customer?.id ?? null,
+        authenticated: false,
+        activationRequired,
+        errors: creationErrors.map((error) => ({
+          code: error.code,
+          message: error.message,
+          field: error.field,
+        })),
+      };
+    }
+
+    const access = await createCustomerAccessToken({
+      email: data.email,
+      password: data.password,
+    });
+    const loginActivationRequired = access.customerUserErrors.some(
+      (error) => error.code === "CUSTOMER_DISABLED",
+    );
+    const loginErrors = access.customerUserErrors.filter(
+      (error) => error.code !== "CUSTOMER_DISABLED",
+    );
+
+    if (access.customerAccessToken) {
+      await saveCustomerAccessTokenSession(access.customerAccessToken);
+    }
+
     return {
       customerId: result.customer?.id ?? null,
-      errors: result.customerUserErrors.map((error) => ({
+      authenticated: Boolean(access.customerAccessToken),
+      activationRequired: loginActivationRequired,
+      errors: loginErrors.map((error) => ({
         code: error.code,
         message: error.message,
         field: error.field,

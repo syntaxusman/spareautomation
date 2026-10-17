@@ -82,11 +82,42 @@ test("customer password-reset links open the new-password form", async ({ page }
   await page.waitForLoadState("networkidle");
   await expect(page.getByRole("heading", { name: "Reset password" })).toBeVisible();
   await page.getByLabel("New password", { exact: true }).fill("new-password-123");
-  await page
-    .getByLabel("Confirm new password", { exact: true })
-    .fill("different-password-123");
+  await page.getByLabel("Confirm new password", { exact: true }).fill("different-password-123");
   await page.getByRole("button", { name: "Set new password" }).click();
   await expect(page.getByRole("alert")).toHaveText("The passwords do not match.");
+});
+
+test("first-party email links keep account activation and reset on site", async ({ page }) => {
+  const activationUrl = encodeURIComponent(
+    "https://example.myshopify.com/account/activate/123456789/0123456789abcdef0123456789abcdef",
+  );
+  await page.goto(`/activate?activation_url=${activationUrl}`);
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByRole("heading", { name: "Activate account" })).toBeVisible();
+  await expect(
+    page.getByText(/Choose a password to finish setting up your account/i),
+  ).toBeVisible();
+  await page.getByLabel("New password", { exact: true }).fill("new-password-123");
+  await page.getByLabel("Confirm new password", { exact: true }).fill("different-password-123");
+  await page.getByRole("button", { name: "Activate account" }).click();
+  await expect(page.getByRole("alert")).toHaveText("The passwords do not match.");
+
+  const resetUrl = encodeURIComponent(
+    "https://example.myshopify.com/account/reset/123456789/0123456789abcdef0123456789abcdef",
+  );
+  await page.goto(`/reset?reset_url=${resetUrl}`);
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByRole("heading", { name: "Reset password" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Set new password" })).toBeVisible();
+  await expect(page.getByText(/Shopify/i)).toHaveCount(0);
+});
+
+test("incomplete customer email links fail safely", async ({ page }) => {
+  await page.goto("/activate");
+  await expect(page.getByRole("alert")).toHaveText(
+    "This activation link is incomplete or invalid.",
+  );
+  await expect(page.getByRole("link", { name: "Return to registration" })).toBeVisible();
 });
 
 test("contact methods are actionable and consistent", async ({ page }) => {
@@ -366,7 +397,9 @@ test("customers can build a quote from a product", async ({ page }) => {
   await expect(firstProduct).toBeVisible();
   await firstProduct.click();
   await page.waitForURL(/\/products\/[^/?#]+$/, { timeout: 20_000 });
-  await expect(page.getByRole("button", { name: "Build a quote" })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("button", { name: "Build a quote" })).toBeVisible({
+    timeout: 20_000,
+  });
   await page.waitForLoadState("networkidle");
 
   const productTitle = (await page.getByRole("heading", { level: 1 }).textContent())?.trim();

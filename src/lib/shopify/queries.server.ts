@@ -598,6 +598,106 @@ export async function resetCustomerPassword(
   return data.customerReset;
 }
 
+export async function resetCustomerPasswordByUrl(resetUrl: string, password: string) {
+  const data = await shopifyStorefront<{
+    customerResetByUrl: {
+      customerAccessToken?: {
+        accessToken: string;
+        expiresAt: string;
+      } | null;
+      customerUserErrors: CustomerUserError[];
+    };
+  }>(
+    `#graphql
+      mutation CustomerResetByUrl($resetUrl: URL!, $password: String!) {
+        customerResetByUrl(resetUrl: $resetUrl, password: $password) {
+          customerAccessToken {
+            accessToken
+            expiresAt
+          }
+          customerUserErrors {
+            code
+            field
+            message
+          }
+        }
+      }
+    `,
+    { resetUrl, password },
+  );
+
+  return data.customerResetByUrl;
+}
+
+export async function activateCustomerByUrl(activationUrl: string, password: string) {
+  const data = await shopifyStorefront<{
+    customerActivateByUrl: {
+      customerAccessToken?: {
+        accessToken: string;
+        expiresAt: string;
+      } | null;
+      customerUserErrors: CustomerUserError[];
+    };
+  }>(
+    `#graphql
+      mutation CustomerActivateByUrl($activationUrl: URL!, $password: String!) {
+        customerActivateByUrl(activationUrl: $activationUrl, password: $password) {
+          customerAccessToken {
+            accessToken
+            expiresAt
+          }
+          customerUserErrors {
+            code
+            field
+            message
+          }
+        }
+      }
+    `,
+    { activationUrl, password },
+  );
+
+  return data.customerActivateByUrl;
+}
+
+export async function activateCustomer(
+  customerId: string,
+  activationToken: string,
+  password: string,
+) {
+  const data = await shopifyStorefront<{
+    customerActivate: {
+      customerAccessToken?: {
+        accessToken: string;
+        expiresAt: string;
+      } | null;
+      customerUserErrors: CustomerUserError[];
+    };
+  }>(
+    `#graphql
+      mutation CustomerActivate($id: ID!, $input: CustomerActivateInput!) {
+        customerActivate(id: $id, input: $input) {
+          customerAccessToken {
+            accessToken
+            expiresAt
+          }
+          customerUserErrors {
+            code
+            field
+            message
+          }
+        }
+      }
+    `,
+    {
+      id: `gid://shopify/Customer/${customerId}`,
+      input: { activationToken, password },
+    },
+  );
+
+  return data.customerActivate;
+}
+
 export async function getCustomer(customerAccessToken: string) {
   const data = await shopifyStorefront<{
     customer?: {

@@ -481,7 +481,7 @@ const DEFAULT_FUNCTIONAL = {
     {
       eyebrow: "Customer Access",
       title: "Create Your Account",
-      intro: "Create your Spares Automation account for faster checkout and access to your Shopify customer details.",
+      intro: "Create your Spares Automation account for faster checkout and secure access to your customer details.",
       sectionEyebrow: "Registration",
       sectionTitle: "New Customer",
       helpCopy: "Already registered?",

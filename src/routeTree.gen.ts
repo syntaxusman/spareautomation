@@ -19,6 +19,7 @@ import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ReturnsPolicyRouteImport } from './routes/returns-policy'
 import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as ResourcesRouteImport } from './routes/resources'
+import { Route as ResetRouteImport } from './routes/reset'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as QuoteRouteImport } from './routes/quote'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
@@ -38,6 +39,7 @@ import { Route as ConcreteRouteImport } from './routes/concrete'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AutomationRouteImport } from './routes/automation'
 import { Route as AsphaltRouteImport } from './routes/asphalt'
+import { Route as ActivateRouteImport } from './routes/activate'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutUsRouteImport } from './routes/about-us'
 import { Route as IndexRouteImport } from './routes/index'
@@ -58,6 +60,7 @@ import { Route as AdminSubmissionsIdRouteImport } from './routes/admin/submissio
 import { Route as AdminContentKeyRouteImport } from './routes/admin/content.$key'
 import { Route as AdminContentKeyPreviewRouteImport } from './routes/admin/content.$key.preview'
 import { Route as AccountResetIdTokenRouteImport } from './routes/account_.reset.$id.$token'
+import { Route as AccountActivateIdTokenRouteImport } from './routes/account_.activate.$id.$token'
 
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
@@ -107,6 +110,11 @@ const ReturnsRoute = ReturnsRouteImport.update({
 const ResourcesRoute = ResourcesRouteImport.update({
   id: '/resources',
   path: '/resources',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetRoute = ResetRouteImport.update({
+  id: '/reset',
+  path: '/reset',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -202,6 +210,11 @@ const AutomationRoute = AutomationRouteImport.update({
 const AsphaltRoute = AsphaltRouteImport.update({
   id: '/asphalt',
   path: '/asphalt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivateRoute = ActivateRouteImport.update({
+  id: '/activate',
+  path: '/activate',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountRoute = AccountRouteImport.update({
@@ -304,11 +317,17 @@ const AccountResetIdTokenRoute = AccountResetIdTokenRouteImport.update({
   path: '/account/reset/$id/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountActivateIdTokenRoute = AccountActivateIdTokenRouteImport.update({
+  id: '/account_/activate/$id/$token',
+  path: '/account/activate/$id/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about-us': typeof AboutUsRoute
   '/account': typeof AccountRoute
+  '/activate': typeof ActivateRoute
   '/asphalt': typeof AsphaltRoute
   '/automation': typeof AutomationRoute
   '/cart': typeof CartRoute
@@ -328,6 +347,7 @@ export interface FileRoutesByFullPath {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/quote': typeof QuoteRoute
   '/register': typeof RegisterRoute
+  '/reset': typeof ResetRoute
   '/resources': typeof ResourcesRoute
   '/returns': typeof ReturnsRoute
   '/returns-policy': typeof ReturnsPolicyRoute
@@ -353,6 +373,7 @@ export interface FileRoutesByFullPath {
   '/content-media/$id/$filename': typeof ContentMediaIdFilenameRoute
   '/admin/content/': typeof AdminContentIndexRoute
   '/admin/submissions/': typeof AdminSubmissionsIndexRoute
+  '/account/activate/$id/$token': typeof AccountActivateIdTokenRoute
   '/account/reset/$id/$token': typeof AccountResetIdTokenRoute
   '/admin/content/$key/preview': typeof AdminContentKeyPreviewRoute
 }
@@ -360,6 +381,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about-us': typeof AboutUsRoute
   '/account': typeof AccountRoute
+  '/activate': typeof ActivateRoute
   '/asphalt': typeof AsphaltRoute
   '/automation': typeof AutomationRoute
   '/cart': typeof CartRoute
@@ -379,6 +401,7 @@ export interface FileRoutesByTo {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/quote': typeof QuoteRoute
   '/register': typeof RegisterRoute
+  '/reset': typeof ResetRoute
   '/resources': typeof ResourcesRoute
   '/returns': typeof ReturnsRoute
   '/returns-policy': typeof ReturnsPolicyRoute
@@ -404,6 +427,7 @@ export interface FileRoutesByTo {
   '/content-media/$id/$filename': typeof ContentMediaIdFilenameRoute
   '/admin/content': typeof AdminContentIndexRoute
   '/admin/submissions': typeof AdminSubmissionsIndexRoute
+  '/account/activate/$id/$token': typeof AccountActivateIdTokenRoute
   '/account/reset/$id/$token': typeof AccountResetIdTokenRoute
   '/admin/content/$key/preview': typeof AdminContentKeyPreviewRoute
 }
@@ -412,6 +436,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about-us': typeof AboutUsRoute
   '/account': typeof AccountRoute
+  '/activate': typeof ActivateRoute
   '/asphalt': typeof AsphaltRoute
   '/automation': typeof AutomationRoute
   '/cart': typeof CartRoute
@@ -431,6 +456,7 @@ export interface FileRoutesById {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/quote': typeof QuoteRoute
   '/register': typeof RegisterRoute
+  '/reset': typeof ResetRoute
   '/resources': typeof ResourcesRoute
   '/returns': typeof ReturnsRoute
   '/returns-policy': typeof ReturnsPolicyRoute
@@ -456,6 +482,7 @@ export interface FileRoutesById {
   '/content-media/$id/$filename': typeof ContentMediaIdFilenameRoute
   '/admin/content/': typeof AdminContentIndexRoute
   '/admin/submissions/': typeof AdminSubmissionsIndexRoute
+  '/account_/activate/$id/$token': typeof AccountActivateIdTokenRoute
   '/account_/reset/$id/$token': typeof AccountResetIdTokenRoute
   '/admin/content/$key/preview': typeof AdminContentKeyPreviewRoute
 }
@@ -465,6 +492,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about-us'
     | '/account'
+    | '/activate'
     | '/asphalt'
     | '/automation'
     | '/cart'
@@ -484,6 +512,7 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/quote'
     | '/register'
+    | '/reset'
     | '/resources'
     | '/returns'
     | '/returns-policy'
@@ -509,6 +538,7 @@ export interface FileRouteTypes {
     | '/content-media/$id/$filename'
     | '/admin/content/'
     | '/admin/submissions/'
+    | '/account/activate/$id/$token'
     | '/account/reset/$id/$token'
     | '/admin/content/$key/preview'
   fileRoutesByTo: FileRoutesByTo
@@ -516,6 +546,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about-us'
     | '/account'
+    | '/activate'
     | '/asphalt'
     | '/automation'
     | '/cart'
@@ -535,6 +566,7 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/quote'
     | '/register'
+    | '/reset'
     | '/resources'
     | '/returns'
     | '/returns-policy'
@@ -560,6 +592,7 @@ export interface FileRouteTypes {
     | '/content-media/$id/$filename'
     | '/admin/content'
     | '/admin/submissions'
+    | '/account/activate/$id/$token'
     | '/account/reset/$id/$token'
     | '/admin/content/$key/preview'
   id:
@@ -567,6 +600,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about-us'
     | '/account'
+    | '/activate'
     | '/asphalt'
     | '/automation'
     | '/cart'
@@ -586,6 +620,7 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/quote'
     | '/register'
+    | '/reset'
     | '/resources'
     | '/returns'
     | '/returns-policy'
@@ -611,6 +646,7 @@ export interface FileRouteTypes {
     | '/content-media/$id/$filename'
     | '/admin/content/'
     | '/admin/submissions/'
+    | '/account_/activate/$id/$token'
     | '/account_/reset/$id/$token'
     | '/admin/content/$key/preview'
   fileRoutesById: FileRoutesById
@@ -619,6 +655,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutUsRoute: typeof AboutUsRoute
   AccountRoute: typeof AccountRoute
+  ActivateRoute: typeof ActivateRoute
   AsphaltRoute: typeof AsphaltRoute
   AutomationRoute: typeof AutomationRoute
   CartRoute: typeof CartRoute
@@ -638,6 +675,7 @@ export interface RootRouteChildren {
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   QuoteRoute: typeof QuoteRoute
   RegisterRoute: typeof RegisterRoute
+  ResetRoute: typeof ResetRoute
   ResourcesRoute: typeof ResourcesRoute
   ReturnsRoute: typeof ReturnsRoute
   ReturnsPolicyRoute: typeof ReturnsPolicyRoute
@@ -663,6 +701,7 @@ export interface RootRouteChildren {
   ContentMediaIdFilenameRoute: typeof ContentMediaIdFilenameRoute
   AdminContentIndexRoute: typeof AdminContentIndexRoute
   AdminSubmissionsIndexRoute: typeof AdminSubmissionsIndexRoute
+  AccountActivateIdTokenRoute: typeof AccountActivateIdTokenRoute
   AccountResetIdTokenRoute: typeof AccountResetIdTokenRoute
 }
 
@@ -736,6 +775,13 @@ declare module '@tanstack/react-router' {
       path: '/resources'
       fullPath: '/resources'
       preLoaderRoute: typeof ResourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset': {
+      id: '/reset'
+      path: '/reset'
+      fullPath: '/reset'
+      preLoaderRoute: typeof ResetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -869,6 +915,13 @@ declare module '@tanstack/react-router' {
       path: '/asphalt'
       fullPath: '/asphalt'
       preLoaderRoute: typeof AsphaltRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activate': {
+      id: '/activate'
+      path: '/activate'
+      fullPath: '/activate'
+      preLoaderRoute: typeof ActivateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account': {
@@ -1011,6 +1064,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountResetIdTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account_/activate/$id/$token': {
+      id: '/account_/activate/$id/$token'
+      path: '/account/activate/$id/$token'
+      fullPath: '/account/activate/$id/$token'
+      preLoaderRoute: typeof AccountActivateIdTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1030,6 +1090,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutUsRoute: AboutUsRoute,
   AccountRoute: AccountRoute,
+  ActivateRoute: ActivateRoute,
   AsphaltRoute: AsphaltRoute,
   AutomationRoute: AutomationRoute,
   CartRoute: CartRoute,
@@ -1049,6 +1110,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   QuoteRoute: QuoteRoute,
   RegisterRoute: RegisterRoute,
+  ResetRoute: ResetRoute,
   ResourcesRoute: ResourcesRoute,
   ReturnsRoute: ReturnsRoute,
   ReturnsPolicyRoute: ReturnsPolicyRoute,
@@ -1074,6 +1136,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContentMediaIdFilenameRoute: ContentMediaIdFilenameRoute,
   AdminContentIndexRoute: AdminContentIndexRoute,
   AdminSubmissionsIndexRoute: AdminSubmissionsIndexRoute,
+  AccountActivateIdTokenRoute: AccountActivateIdTokenRoute,
   AccountResetIdTokenRoute: AccountResetIdTokenRoute,
 }
 export const routeTree = rootRouteImport

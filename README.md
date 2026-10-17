@@ -92,6 +92,19 @@ above as required by the enabled integrations. Keep those values runtime-only.
 When using an external managed PostgreSQL database, set `APP_DATABASE_URL`;
 otherwise leave it empty to use the bundled persistent database.
 
+### Customer account email links
+
+The storefront handles account activation and password changes on the Spares
+Automation domain. In Shopify Admin, keep legacy customer accounts enabled and
+set the primary button URL in the two customer notification templates to:
+
+- Customer account invite: `https://spares-automation.co.uk/activate?activation_url={{ customer.account_activation_url }}`
+- Customer account password reset: `https://spares-automation.co.uk/reset?reset_url={{ customer.reset_password_url }}`
+
+These notification-template URLs are a required deployment setting. The app
+validates the supplied one-time URL, completes the action through the Storefront
+API, and signs the customer in without exposing the commerce backend to them.
+
 The app exposes `/health` for Coolify's container liveness check and `/ready`
 for PostgreSQL readiness. Keeping those checks separate prevents a brief
 database restart from removing the entire public storefront from Coolify's
