@@ -77,7 +77,7 @@ test("authentication controls and metadata are accessible", async ({ page }) => 
   );
 });
 
-test("Shopify password-reset links open the new-password form", async ({ page }) => {
+test("customer password-reset links open the new-password form", async ({ page }) => {
   await page.goto("/account/reset/123456789/0123456789abcdef0123456789abcdef");
   await page.waitForLoadState("networkidle");
   await expect(page.getByRole("heading", { name: "Reset password" })).toBeVisible();

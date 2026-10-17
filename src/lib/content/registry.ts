@@ -1089,7 +1089,7 @@ export const CONTENT_REGISTRY = {
       "part.sending": "Sending",
       "part.successBeforeReference": "Thank you. Your part request has been received and our reference is",
       "part.successAfterReference": "The sales desk will reply by email shortly.",
-      "auth.resetSent": "If an account exists for that address, Shopify will send password-reset instructions.",
+      "auth.resetSent": "If an account exists for that address, we will email a secure reset link. You can set a new password here on Spares Automation.",
       "auth.resetFailed": "Password-reset instructions could not be requested. Please try again.",
       "cart.loadFailed": "Your cart could not be loaded. Check your connection and try again.",
       "cart.updateFailed": "We could not update this item. Your previous quantity is unchanged.",

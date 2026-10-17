@@ -11,7 +11,7 @@ The July UX audit remediation is now implemented while retaining the existing in
 - Added Shopify cursor pagination to the products catalogue and persisted catalogue filters in the URL.
 - Added honest catalogue-empty and mutation-failure states instead of presenting integration failures as ordinary filter results.
 - Removed the unused second customer-account/OAuth implementation and kept the Storefront customer flow used by the visible login, registration, and account pages.
-- Added Shopify password recovery at `/forgot-password` and stopped returning customer access tokens to browser JavaScript.
+- Added customer password recovery at `/forgot-password` and stopped returning customer access tokens to browser JavaScript.
 - Removed hardcoded delivery/lead-time promises and renamed mail-based quote actions so their behavior is explicit.
 - Added accessible request forms for returns, tracking, resources, product questions, and unsubscribe requests.
 - Added responsive Shopify images, deferred third-party video loading, HTTPS-only resource links, and Product/Organization structured data.
