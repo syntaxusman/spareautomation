@@ -92,6 +92,7 @@ export function SiteHeader() {
           </div>
 
           <div className="flex shrink-0 items-center gap-1 xl:hidden">
+            <MobileAccountLink customer={customer} accountLabel={accountLabel} />
             <CartLink count={cartCount} />
             <button
               type="button"
@@ -174,6 +175,9 @@ export function SiteHeader() {
           aria-label="Mobile navigation"
           className="border-b border-white/10 bg-charcoal-deep px-4 py-4 xl:hidden animate-in fade-in duration-150"
         >
+          <div className="mb-4 border-b border-white/10 pb-4">
+            <AccountLinks customer={customer} accountLabel={accountLabel} mobile />
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {navigation.map((item) => (
               <Link
@@ -200,7 +204,6 @@ export function SiteHeader() {
               </a>
               <AccountApplicationLinks mobile />
             </div>
-            <AccountLinks customer={customer} accountLabel={accountLabel} mobile />
           </div>
         </nav>
       ) : null}
@@ -239,6 +242,24 @@ function CartLink({ count }: { count: number }) {
           {count}
         </span>
       ) : null}
+    </Link>
+  );
+}
+
+function MobileAccountLink({
+  customer,
+  accountLabel,
+}: {
+  customer: Awaited<ReturnType<typeof getShopifyCustomer>>;
+  accountLabel: string;
+}) {
+  return (
+    <Link
+      to={customer ? "/account" : "/login"}
+      aria-label={customer ? accountLabel : "Sign in or register"}
+      className="flex h-9 w-9 items-center justify-center text-white/75 hover:text-white"
+    >
+      <User aria-hidden="true" className="h-4 w-4" />
     </Link>
   );
 }

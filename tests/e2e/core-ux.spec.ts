@@ -51,10 +51,16 @@ test("mobile navigation uses separate named controls", async ({ page, isMobile }
   const menu = page.getByRole("button", { name: "Open navigation" });
   await expect(menu).toBeVisible();
   await expect(menu).toBeEnabled({ timeout: 20_000 });
+  await expect(page.getByRole("link", { name: "Sign in or register" })).toHaveAttribute(
+    "href",
+    "/login",
+  );
   await expect(page.getByRole("link", { name: /^Cart/ })).toBeVisible();
   await menu.click();
   const navigation = page.getByRole("navigation", { name: "Mobile navigation" });
   await expect(navigation).toBeVisible();
+  await expect(navigation.getByRole("link", { name: "Sign in", exact: true })).toBeVisible();
+  await expect(navigation.getByRole("link", { name: "Register", exact: true })).toBeVisible();
   await expect(navigation.getByRole("link", { name: "All Products", exact: true })).toBeVisible();
   await expect(
     navigation.getByRole("link", { name: "Home Automation and Controls", exact: true }),
