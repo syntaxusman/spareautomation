@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, count, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
 import { readFile } from "node:fs/promises";
 import { z } from "zod";
 
@@ -147,9 +147,7 @@ export const listSubmissions = createServerFn({ method: "GET" })
     }
 
     const db = getDb();
-    // Preserve legacy rows in Postgres while keeping the removed feature out
-    // of the active admin application.
-    const filters = [sql`${submissions.type} <> 'trade_account'`];
+    const filters: SQL[] = [];
     if (data.type) filters.push(eq(submissions.type, data.type));
     if (data.status) filters.push(eq(submissions.status, data.status));
     if (data.search) {
@@ -174,7 +172,6 @@ export const listSubmissions = createServerFn({ method: "GET" })
     const countRows = await db
       .select({ status: submissions.status, value: count() })
       .from(submissions)
-      .where(sql`${submissions.type} <> 'trade_account'`)
       .groupBy(submissions.status);
     const counts: Record<SubmissionStatus, number> = {
       new: 0,
@@ -275,12 +272,7 @@ export const getSubmissionDetail = createServerFn({ method: "GET" })
       })
       .from(submissions)
       .leftJoin(staffUsers, eq(submissions.reviewedBy, staffUsers.id))
-      .where(
-        and(
-          eq(submissions.id, data.id),
-          sql`${submissions.type} <> 'trade_account'`,
-        ),
-      )
+      .where(eq(submissions.id, data.id))
       .limit(1);
 
     const row = rows[0];
