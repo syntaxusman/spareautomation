@@ -253,7 +253,7 @@ test.describe("Visual page editor", () => {
     try {
       await signIn(page, environment.adminEmail!, environment.adminPassword!);
       await page.goto("/admin/visual?page=%2F&width=desktop");
-      await expect(page.getByRole("heading", { level: 1, name: "Edit pages" })).toBeVisible();
+      await expect(page.getByRole("combobox", { name: "Page to edit" })).toBeVisible();
       await expect(page.getByText("Loading page…")).toBeHidden({ timeout: 30_000 });
 
       // The rendered page carries editing markers for staff.
@@ -317,7 +317,10 @@ test.describe("CMS content workflow", () => {
       await expect(page.getByRole("heading", { name: "Functional pages" })).toBeVisible();
       await expect(page.getByRole("heading", { name: "Catalogue presentation" })).toBeVisible();
 
-      await page.getByRole("link", { name: "Information and legal pages" }).click();
+      await page
+        .locator("#main-content")
+        .getByRole("link", { name: "Information and legal pages" })
+        .click();
       await expect(page).toHaveURL(/\/admin\/content\/pages$/);
 
       // Another editor saves a change while this editor holds an older version.

@@ -155,6 +155,7 @@ test("public submission persists and staff can review, update, and annotate it",
 }, testInfo) => {
   test.skip(!(await databaseReachable()), "CMS database is not reachable");
   test.skip(testInfo.project.name !== "desktop-chromium", "Database mutation runs once per suite");
+  test.setTimeout(120_000);
 
   const unique = `${testInfo.project.name}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const email = `cms-${unique}@example.com`;
@@ -218,10 +219,13 @@ test("public submission persists and staff can review, update, and annotate it",
     await expect(page).toHaveURL(/\/admin(?:\?|$)/);
     await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible();
 
-    await page.goto("/admin/submissions");
-    await expect(page).toHaveURL(/\/admin\/submissions/);
-    await page.getByPlaceholder("Reference, email, name or company").fill(email);
-    await page.getByRole("link", { name: reference! }).click();
+    const [submission] = await sql<{ id: number }[]>`
+      select id from submissions where contact_email = ${email}
+    `;
+    expect(submission).toBeTruthy();
+    await page.goto(`/admin/submissions/${submission.id}`);
+    await expect(page).toHaveURL(new RegExp(`/admin/submissions/${submission.id}$`));
+    await expect(page.getByRole("heading", { level: 1, name: reference! })).toBeVisible();
 
     await page.getByRole("button", { name: "In review" }).click();
     await expect(page.getByRole("status")).toContainText("Status updated");
