@@ -325,6 +325,10 @@ test.describe("CMS content workflow", () => {
         .getByRole("link", { name: "Information and legal pages" })
         .click();
       await expect(page).toHaveURL(/\/admin\/content\/pages$/);
+      await page.waitForFunction(() => {
+        const input = document.querySelector("#field-about-us-title");
+        return input && Object.keys(input).some((key) => key.startsWith("__reactProps$"));
+      });
 
       // Another editor saves a change while this editor holds an older version.
       const draft = structuredClone(original.draft_data) as Record<string, { title: string }>;
@@ -339,6 +343,7 @@ test.describe("CMS content workflow", () => {
       // the stale version is rejected instead of overwriting the other edit.
       const pageTitle = page.locator("#field-about-us-title");
       await pageTitle.fill(`${await pageTitle.inputValue()} (local edit)`);
+      await page.getByRole("button", { name: "Save draft" }).first().click();
       await expect(page.getByRole("alert")).toContainText("This document changed somewhere else", {
         timeout: 15_000,
       });

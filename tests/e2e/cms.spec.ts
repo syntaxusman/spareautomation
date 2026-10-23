@@ -234,7 +234,7 @@ test("public submission persists and staff can review, update, and annotate it",
     const inReview = page.getByRole("button", { name: "In review" });
     await inReview.click();
     await expect(inReview).toBeDisabled();
-    await page.getByPlaceholder("Add an internal note (visible to staff only)").fill(note);
+    await page.getByLabel("Internal note").fill(note);
     await page.getByRole("button", { name: "Add note" }).click();
     await expect(page.getByText(note)).toBeVisible({ timeout: 15_000 });
 
