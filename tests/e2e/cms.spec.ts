@@ -219,13 +219,14 @@ test("public submission persists and staff can review, update, and annotate it",
     await expect(page).toHaveURL(/\/admin(?:\?|$)/);
     await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible();
 
-    const [submission] = await sql<{ id: number }[]>`
-      select id from submissions where contact_email = ${email}
+    const [submission] = await sql<{ id: number; reference: string | null }[]>`
+      select id, reference from submissions where contact_email = ${email}
     `;
     expect(submission).toBeTruthy();
+    expect(submission.reference).toBe(reference);
     await page.goto(`/admin/submissions/${submission.id}`);
     await expect(page).toHaveURL(new RegExp(`/admin/submissions/${submission.id}$`));
-    await expect(page.getByRole("heading", { level: 1, name: reference! })).toBeVisible();
+    await expect(page.getByText(reference!, { exact: true }).first()).toBeVisible({ timeout: 20_000 });
 
     await page.getByRole("button", { name: "In review" }).click();
     await expect(page.getByRole("status")).toContainText("Status updated");

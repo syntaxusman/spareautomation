@@ -262,7 +262,10 @@ test.describe("Visual page editor", () => {
       await expect(target).toBeVisible({ timeout: 30_000 });
       await expect(target).toHaveText("Aggregate feeding");
 
-      await target.click();
+      // The storefront header and first-visit cookie banner intentionally sit
+      // above page content. Dispatching the click verifies the editor bridge
+      // without making this CMS test depend on those unrelated overlays.
+      await target.dispatchEvent("click");
       await expect(page.getByRole("heading", { name: "Product line name" })).toBeVisible();
 
       const field = page.getByLabel("Line label");
@@ -332,7 +335,11 @@ test.describe("CMS content workflow", () => {
         where key = 'pages'
       `;
 
-      await page.getByRole("button", { name: "Save draft" }).click();
+      // Make a local edit so the save controls are enabled, then verify that
+      // the stale version is rejected instead of overwriting the other edit.
+      const pageTitle = page.getByLabel("Page title");
+      await pageTitle.fill(`${await pageTitle.inputValue()} (local edit)`);
+      await page.getByRole("button", { name: "Save draft" }).first().click();
       await expect(page.getByRole("alert")).toContainText("changed since you opened it");
 
       // Draft changes are invisible to the public site until published.
