@@ -68,6 +68,7 @@ async function signIn(page: Page, email: string, password: string) {
   await page.getByLabel("Email address").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/admin(?:\?|$)/, { timeout: 20_000 });
 }
 
 test("public pages render their compiled content without an admin session", async ({ page }) => {
@@ -143,7 +144,10 @@ test("every CMS-wired route renders without a client error", async ({ page }) =>
     "/robots.txt",
     "/sitemap.xml",
     "/site.webmanifest",
-  ].filter((target) => shopifyE2EConfigured || target !== "/products");
+  ].filter(
+    (target) =>
+      shopifyE2EConfigured || (target !== "/products" && !target.startsWith("/search")),
+  );
 
   for (const target of targets) {
     // Catalogue routes call Shopify, which can blip; one retry keeps the check honest.
