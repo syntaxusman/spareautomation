@@ -11,8 +11,10 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "check:content": "esbuild scripts/check-content-fields.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/check-content-fields.mjs --log-level=warning && node node_modules/.cache/check-content-fields.mjs",
+    "check:bundle": "node scripts/check-bundle-size.mjs",
+    "check:catalog": "node --experimental-strip-types --env-file-if-exists=.env scripts/check-shopify-catalog.ts",
     "test": "playwright test",
-    "check": "bun run lint && bun run typecheck && bun run check:content && bun run test && bun run build",
+    "check": "bun run lint && bun run typecheck && bun run check:content && bun run test && bun run build && bun run check:bundle",
     "shopify:sync-collections": "node --experimental-strip-types --env-file-if-exists=.env scripts/sync-shopify-collections.ts",
     "format": "prettier --write ."
   },

@@ -30,6 +30,7 @@ import {
 import {
   addVat,
   formatMoney,
+  isVariantPurchasable,
   shopifyImageUrl,
   STANDARD_VAT_RATE,
 } from "@/lib/shopify/format";
@@ -58,10 +59,11 @@ export function ProductDetail({ product }: ProductDetailProps) {
   const [activeImage, setActiveImage] = useState(gallery[0]);
   const brand = product.technicalDetails.brand ?? product.vendor ?? "Spares Automation";
   const mpnRange = product.technicalDetails.mpnRange ?? selectedVariant?.sku ?? "Ask for MPN";
+  const selectedVariantPurchasable = isVariantPurchasable(selectedVariant);
 
   return (
     <div className="min-h-screen bg-background text-ink">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "Product", name: product.title, description: product.description, image: product.images.map((image) => image.url), sku: selectedVariant?.sku || undefined, brand: { "@type": "Brand", name: brand }, offers: selectedVariant ? { "@type": "Offer", price: selectedVariant.price.amount, priceCurrency: selectedVariant.price.currencyCode, availability: selectedVariant.availableForSale ? "https://schema.org/InStock" : "https://schema.org/OutOfStock", url: `${site.url}/products/${product.handle}` } : undefined }).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "Product", name: product.title, description: product.description, image: product.images.map((image) => image.url), sku: selectedVariant?.sku || undefined, brand: { "@type": "Brand", name: brand }, offers: selectedVariant && selectedVariantPurchasable ? { "@type": "Offer", price: selectedVariant.price.amount, priceCurrency: selectedVariant.price.currencyCode, availability: "https://schema.org/InStock", url: `${site.url}/products/${product.handle}` } : undefined }).replace(/</g, "\\u003c") }} />
       <SiteHeader />
 
       <main id="main-content" className="mx-auto max-w-[1600px]">
@@ -105,9 +107,11 @@ export function ProductDetail({ product }: ProductDetailProps) {
                   Excl. VAT
                 </div>
                 <div className="mt-1 font-display text-2xl font-bold text-ink md:text-[1.75rem]">
-                  {selectedVariant ? formatMoney(selectedVariant.price) : "Price on request"}
+                  {selectedVariantPurchasable && selectedVariant
+                    ? formatMoney(selectedVariant.price)
+                    : "Request price"}
                 </div>
-                {selectedVariant?.compareAtPrice ? (
+                {selectedVariantPurchasable && selectedVariant?.compareAtPrice ? (
                   <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-muted line-through">
                     Was {formatMoney(selectedVariant.compareAtPrice)}
                   </div>
@@ -118,11 +122,11 @@ export function ProductDetail({ product }: ProductDetailProps) {
                   Incl. VAT ({Math.round(STANDARD_VAT_RATE * 100)}%)
                 </div>
                 <div className="mt-1 font-display text-2xl font-bold text-accent md:text-[1.75rem]">
-                  {selectedVariant
+                  {selectedVariantPurchasable && selectedVariant
                     ? formatMoney(addVat(selectedVariant.price))
-                    : "Price on request"}
+                    : "Request price"}
                 </div>
-                {selectedVariant?.compareAtPrice ? (
+                {selectedVariantPurchasable && selectedVariant?.compareAtPrice ? (
                   <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-muted line-through">
                     Was {formatMoney(addVat(selectedVariant.compareAtPrice))}
                   </div>
@@ -154,16 +158,20 @@ export function ProductDetail({ product }: ProductDetailProps) {
               <QuantityStepper
                 value={quantity}
                 onChange={setQuantity}
-                disabled={!selectedVariant?.availableForSale}
+                disabled={!selectedVariantPurchasable}
               />
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <AddToCartButton
                   variantId={selectedVariant?.id ?? ""}
                   quantity={quantity}
-                  disabled={!selectedVariant?.availableForSale}
+                  disabled={!selectedVariantPurchasable}
                   className="inline-flex h-13 items-center justify-center gap-2 bg-accent px-5 font-mono text-[11px] uppercase tracking-[0.16em] text-accent-foreground transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {selectedVariant?.availableForSale ? "Add to Cart" : "Sold out"}
+                  {selectedVariantPurchasable
+                    ? "Add to Cart"
+                    : selectedVariant?.availableForSale
+                      ? "Request price"
+                      : "Sold out"}
                 </AddToCartButton>
                 <AddToQuoteButton
                   product={product}
@@ -235,7 +243,7 @@ function QuantityStepper({
         className="flex w-11 items-center justify-center text-ink transition-colors hover:bg-background hover:text-accent disabled:cursor-not-allowed disabled:text-ink-muted/35"
         aria-label="Decrease quantity"
       >
-        <Minus className="h-4 w-4" />
+        <Minus aria-hidden="true" className="h-4 w-4" />
       </button>
       <input
         value={value}
@@ -259,7 +267,7 @@ function QuantityStepper({
         className="flex w-11 items-center justify-center text-ink transition-colors hover:bg-background hover:text-accent disabled:cursor-not-allowed disabled:text-ink-muted/35"
         aria-label="Increase quantity"
       >
-        <Plus className="h-4 w-4" />
+        <Plus aria-hidden="true" className="h-4 w-4" />
       </button>
     </div>
   );

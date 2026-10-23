@@ -1,10 +1,15 @@
 import { expect, test } from "@playwright/test";
 
-test("cookie choices are saved and can be reopened from the footer", async ({ page }) => {
+test("cookie choices are saved and can be reopened from the footer", async ({ page, isMobile }) => {
   await page.goto("/");
 
   const preferences = page.getByRole("region", { name: "Cookie preferences" });
   await expect(preferences).toBeVisible();
+  if (isMobile) {
+    const box = await preferences.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.height / page.viewportSize()!.height).toBeLessThan(0.34);
+  }
   await page.getByRole("button", { name: "Manage choices" }).click();
 
   await expect(page.getByLabel("Necessary", { exact: false })).toBeChecked();

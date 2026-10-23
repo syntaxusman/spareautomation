@@ -48,6 +48,9 @@ test("mobile navigation uses separate named controls", async ({ page, isMobile }
     if (message.type() === "error") console.error("Browser console error:", message.text());
   });
   await page.goto("/");
+  const headerBox = await page.locator("header").boundingBox();
+  expect(headerBox).not.toBeNull();
+  expect(headerBox!.height).toBeLessThanOrEqual(150);
   const menu = page.getByRole("button", { name: "Open navigation" });
   await expect(menu).toBeVisible();
   await expect(menu).toBeEnabled({ timeout: 20_000 });

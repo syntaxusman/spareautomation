@@ -46,6 +46,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ProductsHandleRouteImport } from './routes/products/$handle'
+import { Route as ApiWebVitalsRouteImport } from './routes/api.web-vitals'
 import { Route as AdminVisualRouteImport } from './routes/admin/visual'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
@@ -247,6 +248,11 @@ const ProductsHandleRoute = ProductsHandleRouteImport.update({
   path: '/products/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWebVitalsRoute = ApiWebVitalsRouteImport.update({
+  id: '/api/web-vitals',
+  path: '/api/web-vitals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminVisualRoute = AdminVisualRouteImport.update({
   id: '/admin/visual',
   path: '/admin/visual',
@@ -365,6 +371,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/visual': typeof AdminVisualRoute
+  '/api/web-vitals': typeof ApiWebVitalsRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/products/': typeof ProductsIndexRoute
@@ -419,6 +426,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/visual': typeof AdminVisualRoute
+  '/api/web-vitals': typeof ApiWebVitalsRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/admin': typeof AdminIndexRoute
   '/products': typeof ProductsIndexRoute
@@ -474,6 +482,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/visual': typeof AdminVisualRoute
+  '/api/web-vitals': typeof ApiWebVitalsRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/products/': typeof ProductsIndexRoute
@@ -530,6 +539,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/visual'
+    | '/api/web-vitals'
     | '/products/$handle'
     | '/admin/'
     | '/products/'
@@ -584,6 +594,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/visual'
+    | '/api/web-vitals'
     | '/products/$handle'
     | '/admin'
     | '/products'
@@ -638,6 +649,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/visual'
+    | '/api/web-vitals'
     | '/products/$handle'
     | '/admin/'
     | '/products/'
@@ -693,6 +705,7 @@ export interface RootRouteChildren {
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminVisualRoute: typeof AdminVisualRoute
+  ApiWebVitalsRoute: typeof ApiWebVitalsRoute
   ProductsHandleRoute: typeof ProductsHandleRoute
   AdminIndexRoute: typeof AdminIndexRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
@@ -966,6 +979,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/web-vitals': {
+      id: '/api/web-vitals'
+      path: '/api/web-vitals'
+      fullPath: '/api/web-vitals'
+      preLoaderRoute: typeof ApiWebVitalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/visual': {
       id: '/admin/visual'
       path: '/admin/visual'
@@ -1128,6 +1148,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSettingsRoute: AdminSettingsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminVisualRoute: AdminVisualRoute,
+  ApiWebVitalsRoute: ApiWebVitalsRoute,
   ProductsHandleRoute: ProductsHandleRoute,
   AdminIndexRoute: AdminIndexRoute,
   ProductsIndexRoute: ProductsIndexRoute,

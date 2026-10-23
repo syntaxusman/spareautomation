@@ -196,9 +196,36 @@ function RootComponent() {
   return (
     <EditModeProvider enabled={editMode}>
       <ContentProvider value={content}>
+        <ClientMonitoring />
         <Outlet />
         {isAdmin ? null : <CookieConsent />}
       </ContentProvider>
     </EditModeProvider>
   );
+}
+
+function ClientMonitoring() {
+  useEffect(() => {
+    if (import.meta.env.PROD) {
+      void import("../lib/web-vitals").then(({ startWebVitalsMonitoring }) => {
+        startWebVitalsMonitoring();
+      });
+    }
+
+    const reportWindowError = (event: ErrorEvent) => {
+      reportLovableError(event.error ?? new Error(event.message), { source: "window.onerror" });
+    };
+    const reportUnhandledRejection = (event: PromiseRejectionEvent) => {
+      reportLovableError(event.reason, { source: "window.unhandledrejection" });
+    };
+
+    window.addEventListener("error", reportWindowError);
+    window.addEventListener("unhandledrejection", reportUnhandledRejection);
+    return () => {
+      window.removeEventListener("error", reportWindowError);
+      window.removeEventListener("unhandledrejection", reportUnhandledRejection);
+    };
+  }, []);
+
+  return null;
 }

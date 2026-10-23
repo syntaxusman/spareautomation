@@ -32,7 +32,35 @@ export default tseslint.config(
           ],
         },
       ],
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "react-refresh/only-export-components": [
+        "warn",
+        {
+          allowConstantExport: true,
+          // These colocated hooks and style helpers are intentional public APIs
+          // used by the component modules; listing them keeps new accidental
+          // non-component exports visible without generating baseline noise.
+          allowExportNames: [
+            "SUBMISSION_TYPE_LABELS",
+            "badgeVariants",
+            "buttonVariants",
+            "defaultFor",
+            "formatBytes",
+            "formatDate",
+            "formatDateTime",
+            "formatRelative",
+            "humaniseAction",
+            "navigationMenuTriggerStyle",
+            "toggleVariants",
+            "useCmsTheme",
+            "useCommandPalette",
+            "useContent",
+            "useEditable",
+            "useEditMode",
+            "useFormField",
+            "useSidebar",
+          ],
+        },
+      ],
       "@typescript-eslint/no-unused-vars": "off",
     },
   },

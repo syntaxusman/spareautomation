@@ -3,6 +3,11 @@ import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { writeAdminAudit } from "../admin/audit.server";
 import { getDb } from "../db/index.server";
 import {
+  getFailureBackoffMs,
+  shouldReportFailure,
+  summarizeDatabaseError,
+} from "../db/resilience";
+import {
   contentDocuments,
   contentMedia,
   contentRevisions,
@@ -75,6 +80,8 @@ export async function seedContentDefaults(): Promise<void> {
 }
 
 let bundleCache: { data: ContentBundle; expires: number } | null = null;
+let consecutiveBundleFailures = 0;
+let lastBundleFailureLogAt = 0;
 
 export function invalidateContentBundleCache(): void {
   bundleCache = null;
@@ -102,10 +109,18 @@ export async function loadPublishedContentBundle(): Promise<ContentBundle> {
         console.error(`[content] Invalid published document ${key}; using defaults:`, error);
       }
     }
+    consecutiveBundleFailures = 0;
     bundleCache = { data: result, expires: now + 10_000 };
   } catch (error) {
-    console.error("[content] Published content unavailable; using defaults:", error);
-    bundleCache = { data: result, expires: now + 5_000 };
+    consecutiveBundleFailures += 1;
+    const retryDelay = getFailureBackoffMs(consecutiveBundleFailures);
+    if (shouldReportFailure(lastBundleFailureLogAt, now)) {
+      lastBundleFailureLogAt = now;
+      console.error(
+        `[content] Published content unavailable; using compiled defaults for ${Math.ceil(retryDelay / 1_000)}s (${summarizeDatabaseError(error)}).`,
+      );
+    }
+    bundleCache = { data: result, expires: now + retryDelay };
   }
   return result;
 }

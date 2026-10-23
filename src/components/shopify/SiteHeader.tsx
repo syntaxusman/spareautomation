@@ -72,7 +72,7 @@ export function SiteHeader() {
       </a>
 
       <div className="bg-charcoal-deep text-white/80">
-        <div className="flex min-h-9 w-full min-w-0 items-center justify-between gap-3 px-4 font-mono text-[10px] uppercase tracking-[0.14em] md:px-6 md:text-[11px] md:tracking-[0.18em]">
+        <div className="flex min-h-11 w-full min-w-0 items-center justify-between gap-3 px-4 font-mono text-[10px] uppercase tracking-[0.14em] md:min-h-9 md:px-6 md:text-[11px] md:tracking-[0.18em]">
           <div className="flex min-w-0 items-center gap-4 md:gap-6">
             <span className="flex shrink-0 items-center gap-2">
               <Globe aria-hidden="true" className="h-3 w-3 text-accent" /> UK / EN-GB / GBP
@@ -100,7 +100,7 @@ export function SiteHeader() {
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-navigation"
               aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"}
-              className="flex h-9 w-9 items-center justify-center text-white/80 hover:text-white disabled:opacity-60"
+              className="flex h-11 w-11 items-center justify-center text-white/80 hover:text-white disabled:opacity-60"
               onClick={() => setMobileMenuOpen((open) => !open)}
             >
               {mobileMenuOpen ? (
@@ -114,7 +114,7 @@ export function SiteHeader() {
       </div>
 
       <div className="border-b border-white/10 bg-[oklch(0.285_0.012_250)]">
-        <div className="grid w-full min-w-0 grid-cols-1 items-center gap-4 px-4 py-4 md:grid-cols-12 md:gap-6 md:px-6">
+        <div className="grid w-full min-w-0 grid-cols-1 items-center gap-2 px-4 py-2 md:grid-cols-12 md:gap-6 md:px-6 md:py-4">
           <Link to="/" className="mx-auto flex items-center gap-3 md:col-span-3 md:mx-0">
             <BrandMark name={content.site.name} />
           </Link>
@@ -122,7 +122,7 @@ export function SiteHeader() {
             <form
               action="/search"
               role="search"
-              className="group flex h-12 min-w-0 items-center border border-white/25 bg-white/[0.08] pl-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] focus-within:border-accent focus-within:bg-white/[0.11]"
+              className="group flex h-11 min-w-0 items-center border border-white/25 bg-white/[0.08] pl-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] focus-within:border-accent focus-within:bg-white/[0.11] md:h-12"
             >
               <Search aria-hidden="true" className="h-4 w-4 shrink-0 text-accent" />
               <label htmlFor="site-search" className="sr-only">
@@ -138,7 +138,7 @@ export function SiteHeader() {
               <button
                 type="submit"
                 aria-label="Search products"
-                className="flex h-10 shrink-0 items-center bg-accent px-3 font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-white hover:brightness-110 sm:px-5 md:px-6 md:text-[11px] md:tracking-[0.22em]"
+                className="flex h-11 shrink-0 items-center bg-accent px-3 font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-white hover:brightness-110 sm:px-5 md:h-10 md:px-6 md:text-[11px] md:tracking-[0.22em]"
               >
                 <span className="hidden sm:inline">Search</span>
                 <Search aria-hidden="true" className="h-4 w-4 sm:hidden" />
@@ -218,7 +218,7 @@ const DEFAULT_NAV_LINES: Record<string, { label: string; lines: string[] }> = {
 function BrandMark({ name }: { name: string }) {
   return (
     <>
-      <span aria-hidden="true" className="relative h-9 w-9 shrink-0">
+      <span aria-hidden="true" className="relative h-8 w-8 shrink-0 sm:h-9 sm:w-9">
         <span className="absolute inset-0 rotate-45 border-2 border-accent" />
         <span className="absolute inset-[6px] rotate-45 bg-accent" />
       </span>
@@ -234,7 +234,7 @@ function CartLink({ count }: { count: number }) {
     <Link
       to="/cart"
       aria-label={`Cart${count ? `, ${count} items` : ""}`}
-      className="flex h-9 min-w-9 items-center justify-center gap-1 text-white/75 hover:text-white"
+      className="flex h-11 min-w-11 items-center justify-center gap-1 text-white/75 hover:text-white xl:h-9 xl:min-w-9"
     >
       <ShoppingCart aria-hidden="true" className="h-4 w-4" />
       {count > 0 ? (
@@ -257,7 +257,7 @@ function MobileAccountLink({
     <Link
       to={customer ? "/account" : "/login"}
       aria-label={customer ? accountLabel : "Sign in or register"}
-      className="flex h-9 w-9 items-center justify-center text-white/75 hover:text-white"
+      className="flex h-11 w-11 items-center justify-center text-white/75 hover:text-white"
     >
       <User aria-hidden="true" className="h-4 w-4" />
     </Link>

@@ -1,7 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, PackageSearch } from "lucide-react";
 
-import { formatProductPrice, shopifyImageUrl } from "@/lib/shopify/format";
+import {
+  formatProductPrice,
+  isVariantPurchasable,
+  shopifyImageUrl,
+} from "@/lib/shopify/format";
 import type { ShopifyProduct } from "@/lib/shopify/types";
 
 import { AddToCartButton } from "./AddToCartButton";
@@ -11,12 +15,17 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
-  const firstAvailableVariant =
-    product.variants.find((variant) => variant.availableForSale) ?? product.variants[0];
+  const firstPurchasableVariant = product.variants.find(isVariantPurchasable);
+  const canPurchase = Boolean(product.availableForSale && firstPurchasableVariant);
 
   return (
-    <article className="group flex min-h-[360px] md:min-h-[400px] lg:min-h-[420px] flex-col border border-rule bg-surface transition-colors hover:border-accent/50">
-      <Link to="/products/$handle" params={{ handle: product.handle }} className="block">
+    <article className="product-card group flex min-h-[360px] md:min-h-[400px] lg:min-h-[420px] flex-col border border-rule bg-surface transition-colors hover:border-accent/50">
+      <Link
+        to="/products/$handle"
+        params={{ handle: product.handle }}
+        aria-label={`View ${product.title}`}
+        className="block"
+      >
         <div className="relative aspect-square overflow-hidden bg-[oklch(0.96_0.005_250)]">
           {product.featuredImage ? (
             <img
@@ -30,8 +39,11 @@ export function ProductCard({ product }: ProductCardProps) {
               className="h-full w-full object-cover mix-blend-multiply transition-transform duration-700 group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center font-mono text-[10px] uppercase tracking-[0.25em] text-ink-muted">
-              Image Pending
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-ink-muted">
+              <PackageSearch aria-hidden="true" className="h-8 w-8 text-accent/70" />
+              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em]">
+                Image unavailable
+              </span>
             </div>
           )}
           <div aria-hidden="true" className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center bg-charcoal-deep text-accent opacity-0 transition-opacity group-hover:opacity-100 md:bottom-4 md:right-4 md:h-9 md:w-9">
@@ -41,7 +53,12 @@ export function ProductCard({ product }: ProductCardProps) {
       </Link>
 
       <div className="flex flex-1 flex-col p-4 md:p-5">
-        <Link to="/products/$handle" params={{ handle: product.handle }} className="block">
+        <Link
+          to="/products/$handle"
+          params={{ handle: product.handle }}
+          aria-label={`View details for ${product.title}`}
+          className="block"
+        >
           <div className="font-mono text-[8px] md:text-[9px] uppercase tracking-[0.24em] text-ink-muted">
             {product.vendor || "Spares Automation"}
           </div>
@@ -61,13 +78,22 @@ export function ProductCard({ product }: ProductCardProps) {
               {formatProductPrice(product)}
             </div>
           </div>
-          <AddToCartButton
-            variantId={firstAvailableVariant?.id ?? ""}
-            disabled={!firstAvailableVariant || !product.availableForSale}
-            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 bg-charcoal px-3.5 sm:px-4 font-mono text-[9px] uppercase tracking-[0.2em] text-white transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {product.availableForSale ? "Add" : "Sold Out"}
-          </AddToCartButton>
+          {canPurchase ? (
+            <AddToCartButton
+              variantId={firstPurchasableVariant?.id ?? ""}
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 bg-charcoal px-3.5 sm:px-4 font-mono text-[9px] uppercase tracking-[0.2em] text-white transition-colors hover:bg-accent"
+            >
+              Add
+            </AddToCartButton>
+          ) : (
+            <Link
+              to="/products/$handle"
+              params={{ handle: product.handle }}
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 bg-charcoal px-3.5 font-mono text-[9px] uppercase tracking-[0.2em] text-white transition-colors hover:bg-accent sm:px-4"
+            >
+              {product.availableForSale ? "Enquire" : "Sold Out"}
+            </Link>
+          )}
         </div>
       </div>
     </article>

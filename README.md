@@ -24,8 +24,11 @@ The July UX audit remediation is now implemented while retaining the existing in
 
 - `bun run lint` passes with six pre-existing Fast Refresh warnings in unused UI primitive files and no errors.
 - `bun run typecheck` passes.
+- `bun run check:content` validates CMS-managed fields and editable markers.
+- `bun run check:catalog` audits the live Shopify catalogue and fails on missing images, zero prices, or products without a purchasable positive-price variant. Run it before publishing catalogue changes.
 - `bun run test` passes: 9 browser tests passed and one intentionally skipped desktop-only duplicate.
 - `bun run build` passes.
+- `bun run check:bundle` enforces the 500 KiB maximum client-chunk budget after a build.
 - Production route smoke tests pass with configured Shopify environment variables; missing products now return HTTP 404.
 - Mobile Lighthouse: Accessibility 100, Best Practices 100, SEO 100.
 

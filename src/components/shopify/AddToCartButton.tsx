@@ -25,6 +25,7 @@ export function AddToCartButton({
   return (
     <button
       type="button"
+      aria-live="polite"
       disabled={disabled || status === "adding"}
       onClick={async () => {
         try {
@@ -51,7 +52,7 @@ export function AddToCartButton({
         "inline-flex h-11 items-center justify-center gap-2 bg-accent px-5 font-mono text-[10px] uppercase tracking-[0.22em] text-accent-foreground transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
       }
     >
-      <ShoppingCart className="h-4 w-4" />
+      <ShoppingCart aria-hidden="true" className="h-4 w-4" />
       {status === "adding"
         ? "Adding"
         : status === "added"

@@ -116,6 +116,17 @@ export function InfoPage({
       <SiteHeader />
 
       <main id="main-content">
+        {!showHero && renderedTitle ? (
+          <h1
+            className="sr-only"
+            aria-label={
+              functionalKey === "credit-account" ? "Credit account application page" : renderedTitle
+            }
+            {...(documentPath ? edit(`${documentPath}.title`, "Page heading") : {})}
+          >
+            {renderedTitle}
+          </h1>
+        ) : null}
         {showHero ? (
           <section
             className={`border-b border-rule bg-charcoal-deep text-white ${

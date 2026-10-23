@@ -46,6 +46,7 @@ const categoryGroups = CATALOG_CATEGORIES.map((category) => ({
   ] satisfies CategoryFilter[],
 }));
 const collectionFilters = categoryGroups.flatMap((category) => category.collections);
+const CATALOGUE_PAGE_SIZE = 12;
 
 export const Route = createFileRoute("/products/")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -61,7 +62,7 @@ export const Route = createFileRoute("/products/")({
       ? deps.category
       : undefined;
     const [initialPage, collections, content] = await Promise.all([
-      getCatalogProductsPage({ data: { first: 48, collectionHandle } }),
+      getCatalogProductsPage({ data: { first: CATALOGUE_PAGE_SIZE, collectionHandle } }),
       Promise.all(
         categoryGroups.map(async (category) => {
           try {
@@ -605,7 +606,7 @@ function ProductsCataloguePage() {
                   try {
                     const next = await getCatalogProductsPage({
                       data: {
-                        first: 48,
+                        first: CATALOGUE_PAGE_SIZE,
                         collectionHandle: activeCategory === "all" ? undefined : activeCategory,
                         after: pageInfo.endCursor ?? undefined,
                       },

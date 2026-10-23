@@ -21,7 +21,7 @@ import { ContentProvider, useContent } from "@/lib/content/ContentContext";
 import { getContentEditor } from "@/lib/content/content.functions";
 import { cmsHead } from "@/lib/admin/head";
 import { isContentKey, renderTemplateText, type ContentBundle } from "@/lib/content/registry";
-import { Home } from "@/routes/index";
+import { HomePage } from "@/components/shopify/HomePage";
 
 const VIEWPORTS = {
   desktop: { label: "Desktop", width: "100%", icon: Monitor },
@@ -167,7 +167,7 @@ function PreviewBody({ contentKey, page }: { contentKey: string; page: string })
   const content = useContent();
 
   if (contentKey === "home" || contentKey === "catalogue" || contentKey === "product") {
-    return <Home />;
+    return <HomePage />;
   }
 
   if (contentKey === "pages") {

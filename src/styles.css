@@ -85,9 +85,9 @@
  * the small mono labels used throughout the catalogue and forms.
  */
 @layer utilities {
-  .font-mono.text-\[8px\] { font-size: 0.5625rem; }
+  .font-mono.text-\[8px\] { font-size: 0.625rem; }
   .font-mono.text-\[9px\],
-  .font-mono.text-\[10px\] { font-size: 0.6875rem; }
+  .font-mono.text-\[10px\] { font-size: 0.75rem; }
 
   .text-white\/30 { color: rgb(255 255 255 / 0.75); }
   .text-white\/40 { color: rgb(255 255 255 / 0.8); }

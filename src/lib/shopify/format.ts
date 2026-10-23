@@ -1,4 +1,4 @@
-import type { ShopifyMoney, ShopifyProduct } from "./types";
+import type { ShopifyMoney, ShopifyProduct, ShopifyVariant } from "./types";
 
 export const STANDARD_VAT_RATE = 0.2;
 
@@ -33,11 +33,37 @@ export function formatProductPrice(product: Pick<ShopifyProduct, "priceRange">) 
   const min = product.priceRange.minVariantPrice;
   const max = product.priceRange.maxVariantPrice;
 
+  if (!hasPositivePrice(min)) return "Request price";
+
   if (min.amount === max.amount && min.currencyCode === max.currencyCode) {
     return formatMoney(min);
   }
 
   return `From ${formatMoney(min)}`;
+}
+
+export function hasPositivePrice(money: ShopifyMoney | null | undefined): boolean {
+  if (!money) return false;
+  const amount = Number(money.amount);
+  return Number.isFinite(amount) && amount > 0;
+}
+
+export function isVariantPurchasable(
+  variant: Pick<ShopifyVariant, "availableForSale" | "price"> | null | undefined,
+): boolean {
+  return Boolean(variant?.availableForSale && hasPositivePrice(variant.price));
+}
+
+export function getProductQualityIssues(
+  product: Pick<ShopifyProduct, "featuredImage" | "priceRange" | "variants">,
+): string[] {
+  const issues: string[] = [];
+  if (!product.featuredImage) issues.push("missing-image");
+  if (!hasPositivePrice(product.priceRange.minVariantPrice)) issues.push("missing-price");
+  if (!product.variants.some((variant) => isVariantPurchasable(variant))) {
+    issues.push("no-purchasable-variant");
+  }
+  return issues;
 }
 
 export function shopifyImageUrl(url: string, width: number) {
