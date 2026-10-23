@@ -67,7 +67,7 @@ The revised internal audit score is **8.1/10**, up from **6.9/10**. The applicat
 - Reduced the largest client chunk below the new CI budget.
 - Added production Core Web Vitals reporting for LCP, CLS, INP, FCP, and TTFB.
 - Eliminated all ESLint warnings.
-- Limited CI browser workers to reduce database contention and improve test stability.
+- Isolated CI browser execution to prevent stateful CMS tests from racing over the shared staging database.
 
 ### 5. Database resilience
 

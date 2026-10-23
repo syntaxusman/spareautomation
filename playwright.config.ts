@@ -3,7 +3,9 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
-  workers: process.env.CI ? 2 : undefined,
+  // Stateful CMS scenarios share one staging database. Serial CI execution
+  // prevents cross-test publishing, session and seed races.
+  workers: process.env.CI ? 1 : undefined,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: {

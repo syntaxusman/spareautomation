@@ -5,6 +5,7 @@ import { expect, test, type Page } from "@playwright/test";
 import postgres from "postgres";
 
 import { hashPassword } from "../../src/lib/admin/auth.server";
+import { shopifyE2EConfigured } from "./test-environment";
 
 function localEnvironment(): Record<string, string> {
   const envPath = path.resolve(process.cwd(), ".env");
@@ -126,7 +127,7 @@ test("every CMS-wired route renders without a client error", async ({ page }) =>
     if (message.type() === "error") failures.push(`${page.url()}: ${message.text()}`);
   });
 
-  for (const target of [
+  const targets = [
     "/",
     "/products",
     "/search?q=valve",
@@ -142,7 +143,9 @@ test("every CMS-wired route renders without a client error", async ({ page }) =>
     "/robots.txt",
     "/sitemap.xml",
     "/site.webmanifest",
-  ]) {
+  ].filter((target) => shopifyE2EConfigured || target !== "/products");
+
+  for (const target of targets) {
     // Catalogue routes call Shopify, which can blip; one retry keeps the check honest.
     let response = await page.goto(target);
     if ((response?.status() ?? 500) >= 500) response = await page.goto(target);
@@ -192,7 +195,7 @@ test.describe("CMS dashboard", () => {
     // Every content document is reachable from the sidebar.
     await sidebar.getByText("Business details", { exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/content\/site$/);
-    await expect(page.getByRole("button", { name: "Save draft" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save draft" }).first()).toBeVisible();
     await expect(page.getByRole("button", { name: "Publish" })).toBeVisible();
 
     await sidebar.getByText("Media", { exact: true }).click();

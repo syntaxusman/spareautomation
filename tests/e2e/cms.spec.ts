@@ -96,6 +96,7 @@ test("returns page directs signed-out customers to their account", async ({ page
 
 test("return request persists in the CMS with an email reference", async ({ page }, testInfo) => {
   test.skip(!(await databaseReachable()), "CMS database is not reachable");
+  test.skip(testInfo.project.name !== "desktop-chromium", "Database mutation runs once per suite");
 
   const unique = `${testInfo.project.name}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const email = `return-${unique}@example.com`;
@@ -152,6 +153,7 @@ test("public submission persists and staff can review, update, and annotate it",
   page,
 }, testInfo) => {
   test.skip(!(await databaseReachable()), "CMS database is not reachable");
+  test.skip(testInfo.project.name !== "desktop-chromium", "Database mutation runs once per suite");
 
   const unique = `${testInfo.project.name}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const email = `cms-${unique}@example.com`;
@@ -253,6 +255,7 @@ test("public submission persists and staff can review, update, and annotate it",
 
 test("honeypot submissions are rejected without creating a row", async ({ page }, testInfo) => {
   test.skip(!(await databaseReachable()), "CMS database is not reachable");
+  test.skip(testInfo.project.name !== "desktop-chromium", "Database mutation runs once per suite");
 
   const email = `spam-${testInfo.project.name}-${Date.now()}@example.com`;
   const sql = postgres(cmsTestEnv.databaseUrl!, { max: 1, prepare: false });

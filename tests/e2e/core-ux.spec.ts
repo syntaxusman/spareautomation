@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { shopifyE2EConfigured } from "./test-environment";
+
 test("homepage remains within the viewport and exposes working navigation", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
@@ -252,6 +254,7 @@ test("supported payment marks appear in the footer", async ({ page }) => {
 });
 
 test("all products keeps one search and a compact catalogue hero", async ({ page }) => {
+  test.skip(!shopifyE2EConfigured, "Shopify catalogue credentials are not configured");
   await page.goto("/products");
   await expect(page.getByRole("searchbox")).toHaveCount(1);
   await expect(page.getByPlaceholder("Search within results...")).toHaveCount(0);
@@ -268,6 +271,7 @@ test("all products keeps one search and a compact catalogue hero", async ({ page
 });
 
 test("selecting a category updates the catalogue hero heading and metadata", async ({ page }) => {
+  test.skip(!shopifyE2EConfigured, "Shopify catalogue credentials are not configured");
   await page.goto("/products?category=asphalt");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/asphalt/i);
 
@@ -276,6 +280,7 @@ test("selecting a category updates the catalogue hero heading and metadata", asy
 });
 
 test("mobile category selection brings products into view", async ({ page, isMobile }) => {
+  test.skip(!shopifyE2EConfigured, "Shopify catalogue credentials are not configured");
   test.skip(!isMobile, "Mobile catalogue behavior");
   await page.goto("/products?category=all&availability=all&sort=newest");
 
@@ -297,6 +302,7 @@ test("mobile category selection brings products into view", async ({ page, isMob
 });
 
 test("every product exposes tabbed support content and useful empty states", async ({ page }) => {
+  test.skip(!shopifyE2EConfigured, "Shopify catalogue credentials are not configured");
   test.slow();
   await page.goto("/products");
   const firstProduct = page.locator('article a[href^="/products/"]').first();
@@ -374,6 +380,7 @@ test("every product exposes tabbed support content and useful empty states", asy
 });
 
 test("YouTube videos require disclaimer consent before loading", async ({ page }) => {
+  test.skip(!shopifyE2EConfigured, "Shopify catalogue credentials are not configured");
   await page.goto("/products/siemens-burners-qrb3-flame-detector");
   // Tabs are client-side, so wait for hydration before driving them.
   await page.waitForLoadState("networkidle");
@@ -400,6 +407,7 @@ test("YouTube videos require disclaimer consent before loading", async ({ page }
 });
 
 test("customers can build a quote from a product", async ({ page }) => {
+  test.skip(!shopifyE2EConfigured, "Shopify catalogue credentials are not configured");
   test.slow();
   await page.goto("/products");
   const firstProduct = page.locator('article a[href^="/products/"]').first();
@@ -429,6 +437,7 @@ test("customers can build a quote from a product", async ({ page }) => {
 });
 
 test("category labels and legacy route match the approved catalogue wording", async ({ page }) => {
+  test.skip(!shopifyE2EConfigured, "Shopify catalogue credentials are not configured");
   await page.goto("/asphalt");
   await expect(page).toHaveURL(/\/products\?category=asphalt&availability=all&sort=newest$/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("ALL PRODUCTS CATALOGUE");
@@ -454,6 +463,7 @@ test("category labels and legacy route match the approved catalogue wording", as
 });
 
 test("resource navigation accurately describes the request service", async ({ page }) => {
+  test.skip(!shopifyE2EConfigured, "Shopify catalogue credentials are not configured");
   await page.goto("/");
   await expect(
     page.locator('header a[href="/resources"]', { hasText: "PDF and Videos" }),
@@ -541,6 +551,7 @@ test("main navigation uses the approved labels and routes", async ({ page, isMob
 });
 
 test("category entry points use the unified catalogue layout", async ({ page, isMobile }) => {
+  test.skip(!shopifyE2EConfigured, "Shopify catalogue credentials are not configured");
   test.skip(isMobile, "Desktop category navigation test");
   await page.setViewportSize({ width: 1900, height: 500 });
   await page.goto("/products?category=all&availability=all&sort=newest");

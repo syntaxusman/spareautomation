@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { shopifyE2EConfigured } from "./test-environment";
+
 const routes = [
   "/",
   "/products?category=all&availability=all&sort=newest",
@@ -19,6 +21,10 @@ test.beforeEach(async ({ page }) => {
 
 for (const route of routes) {
   test(`${route} keeps its core accessibility contract`, async ({ page }) => {
+    test.skip(
+      route.startsWith("/products") && !shopifyE2EConfigured,
+      "Shopify catalogue credentials are not configured",
+    );
     await page.goto(route);
     await expect(page.locator("main")).toHaveCount(1);
     await expect(page.locator("h1")).toHaveCount(1);
@@ -77,6 +83,7 @@ test("web-vitals endpoint accepts a valid same-site metric", async ({ request })
 });
 
 test("catalogue loads additional products without replacing the current results", async ({ page }) => {
+  test.skip(!shopifyE2EConfigured, "Shopify catalogue credentials are not configured");
   await page.goto("/products?category=all&availability=all&sort=newest");
   const cards = page.locator(".product-card");
   const initialCount = await cards.count();
