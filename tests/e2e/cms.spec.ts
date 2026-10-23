@@ -228,6 +228,9 @@ test("public submission persists and staff can review, update, and annotate it",
     await expect(page).toHaveURL(new RegExp(`/admin/submissions/${submission.id}$`));
     await expect(page.getByText(reference!, { exact: true }).first()).toBeVisible({ timeout: 20_000 });
 
+    // The page title is server-rendered; wait for the client event handlers to
+    // hydrate before exercising status and note mutations.
+    await expect(page.getByRole("button", { name: "Add note" })).toBeEnabled();
     const inReview = page.getByRole("button", { name: "In review" });
     await inReview.click();
     await expect(inReview).toBeDisabled();

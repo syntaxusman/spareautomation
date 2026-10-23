@@ -339,8 +339,9 @@ test.describe("CMS content workflow", () => {
       // the stale version is rejected instead of overwriting the other edit.
       const pageTitle = page.locator("#field-about-us-title");
       await pageTitle.fill(`${await pageTitle.inputValue()} (local edit)`);
-      await page.getByRole("button", { name: "Save draft" }).first().click();
-      await expect(page.getByRole("alert")).toContainText("changed since you opened it");
+      await expect(page.getByRole("alert")).toContainText("This document changed somewhere else", {
+        timeout: 15_000,
+      });
 
       // Draft changes are invisible to the public site until published.
       await page.goto("/disclaimer");
