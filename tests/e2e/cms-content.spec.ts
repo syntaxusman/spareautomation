@@ -347,6 +347,12 @@ test.describe("CMS content workflow", () => {
       await expect(page.getByRole("alert")).toContainText("This document changed somewhere else", {
         timeout: 15_000,
       });
+      await page.getByRole("button", { name: "Reload" }).click();
+      await page
+        .getByRole("navigation", { name: "Pages in this document" })
+        .getByRole("button", { name: "Disclaimer" })
+        .click();
+      await expect(page.locator("#field-disclaimer-title")).toHaveValue(editedTitle);
 
       // Draft changes are invisible to the public site until published.
       await page.goto("/disclaimer");
