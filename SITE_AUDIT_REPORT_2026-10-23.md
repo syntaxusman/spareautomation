@@ -26,7 +26,7 @@ The code-side recommendations from this audit have now been implemented while re
 - Zero/invalid-price products show **Request price** and cannot be added to checkout as free products; missing imagery uses a branded fallback state.
 - A live `check:catalog` gate now audits Shopify records before publication.
 - Catalogue pages load 12 products at a time and preserve the existing **Load more** continuation.
-- The home implementation was moved out of its route module; the largest client chunk fell from 530.56 kB to 495.43 kB (483.82 KiB on disk), below the enforced 500 KiB CI budget.
+- The home implementation was moved out of its route module; the largest client chunk fell from 530.56 kB to 500.96 kB (489.22 KiB on disk), below the enforced 500 KiB CI budget.
 - The credit-account page now has one page-level H1, product links have explicit accessible names, priority touch targets are larger, and small operational mono text was raised to 10–12 px.
 - The mobile header fell from 169 px to 145 px and the first-layer cookie notice from 43.4% to 32.7% of the 390×844 viewport without changing the brand system.
 - Automated accessibility smoke tests, incremental catalogue tests, production Core Web Vitals reporting, content validation, bundle checks, and a two-worker CI limit were added.

@@ -32,7 +32,7 @@ The revised internal audit score is **8.1/10**, up from **6.9/10**. The applicat
 | Cookie banner viewport coverage | 43.4% | 32.7% | 25% relative reduction |
 | Initial catalogue products | 18 observed / up to 48 requested | 12 | Faster, shorter first view |
 | Mobile catalogue page height | 12,545 px | 9,342 px | 26% reduction |
-| Largest client JavaScript chunk | 530.56 kB | 495.43 kB | Under the enforced 500 KiB budget |
+| Largest client JavaScript chunk | 530.56 kB | 500.96 kB | Under the enforced 500 KiB budget |
 | Lint warnings | 18 | 0 | Cleared |
 | Final automated test result | Incomplete under DB outage | 125 passed, 25 intentionally skipped, 0 failed | Passing within available environment |
 
@@ -84,7 +84,7 @@ The revised internal audit score is **8.1/10**, up from **6.9/10**. The applicat
 | TypeScript | Passed |
 | Content validation | Passed — 9 documents, 7 block types, 22 editable pages, 71 markers |
 | Production build | Passed |
-| Bundle budget | Passed — largest chunk 483.82 KiB on disk, below 500 KiB |
+| Bundle budget | Passed — largest chunk 489.22 KiB on disk, below 500 KiB |
 | Automated browser/unit suite | 125 passed, 25 skipped, 0 failed |
 | Targeted accessibility regression suite | 16 passed, 0 failed |
 | Visual responsive review | Passed with the established design preserved |

@@ -1,7 +1,7 @@
 import { readdir, stat } from "node:fs/promises";
 import path from "node:path";
 
-const assetsDirectory = path.resolve(".output/public/assets");
+const assetsDirectory = path.resolve("dist/client/assets");
 const maximumChunkBytes = 500 * 1024;
 const entries = await readdir(assetsDirectory);
 const javascriptChunks = await Promise.all(
