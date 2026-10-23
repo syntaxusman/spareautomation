@@ -337,7 +337,7 @@ test.describe("CMS content workflow", () => {
 
       // Make a local edit so the save controls are enabled, then verify that
       // the stale version is rejected instead of overwriting the other edit.
-      const pageTitle = page.getByLabel("Page title", { exact: true });
+      const pageTitle = page.locator("#field-about-us-title");
       await pageTitle.fill(`${await pageTitle.inputValue()} (local edit)`);
       await page.getByRole("button", { name: "Save draft" }).first().click();
       await expect(page.getByRole("alert")).toContainText("changed since you opened it");

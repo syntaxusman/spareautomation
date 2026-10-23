@@ -228,8 +228,9 @@ test("public submission persists and staff can review, update, and annotate it",
     await expect(page).toHaveURL(new RegExp(`/admin/submissions/${submission.id}$`));
     await expect(page.getByText(reference!, { exact: true }).first()).toBeVisible({ timeout: 20_000 });
 
-    await page.getByRole("button", { name: "In review" }).click();
-    await expect(page.getByRole("status")).toContainText("Status updated");
+    const inReview = page.getByRole("button", { name: "In review" });
+    await inReview.click();
+    await expect(inReview).toBeDisabled();
     await page.getByPlaceholder("Add an internal note (visible to staff only)").fill(note);
     await page.getByRole("button", { name: "Add note" }).click();
     await expect(page.getByText(note)).toBeVisible({ timeout: 15_000 });
