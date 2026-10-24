@@ -1,4 +1,11 @@
-import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  redirect,
+  useLocation,
+  useRouter,
+} from "@tanstack/react-router";
 import {
   CircleAlert,
   ExternalLink,
@@ -72,8 +79,13 @@ export const Route = createFileRoute("/admin/content/$key")({
     ]);
     return { staff, editor, media };
   },
-  component: ContentEditorPage,
+  component: ContentEditorRoute,
 });
+
+function ContentEditorRoute() {
+  const isPreview = useLocation().pathname.endsWith("/preview");
+  return isPreview ? <Outlet /> : <ContentEditorPage />;
+}
 
 function issueMap(issues?: Array<{ path: string; message: string }>) {
   return Object.fromEntries((issues ?? []).map((issue) => [issue.path, issue.message]));
