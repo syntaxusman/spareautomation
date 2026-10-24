@@ -348,6 +348,10 @@ test.describe("CMS content workflow", () => {
         timeout: 15_000,
       });
       await page.getByRole("button", { name: "Reload" }).click();
+      await page.waitForFunction(() => {
+        const input = document.querySelector("#field-about-us-title");
+        return input && Object.keys(input).some((key) => key.startsWith("__reactProps$"));
+      });
       await page
         .getByRole("navigation", { name: "Pages in this document" })
         .getByRole("button", { name: "Disclaimer" })
