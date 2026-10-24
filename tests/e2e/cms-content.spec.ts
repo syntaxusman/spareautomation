@@ -604,7 +604,7 @@ test.describe("CMS content workflow", () => {
       await sql`update staff_users set must_change_password = false where email = ${email}`;
       await page.goto("/admin/content/site");
       await waitForEditorHydration(page);
-      await expect(page.getByRole("button", { name: "Save draft" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Save draft" }).first()).toBeVisible();
 
       // Every editor control keeps an accessible name for keyboard and screen-reader use.
       const unnamedFields = await page.locator("main input:visible, main textarea:visible, main select:visible").evaluateAll(
