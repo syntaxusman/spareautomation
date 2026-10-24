@@ -63,12 +63,17 @@ function databaseReachable() {
   return reachable;
 }
 
-async function signIn(page: Page, email: string, password: string) {
+async function signIn(
+  page: Page,
+  email: string,
+  password: string,
+  expectedUrl: RegExp = /\/admin(?:\?|$)/,
+) {
   await page.goto("/admin/login");
   await page.getByLabel("Email address").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/admin(?:\?|$)/, { timeout: 20_000 });
+  await expect(page).toHaveURL(expectedUrl, { timeout: 20_000 });
 }
 
 async function waitForEditorHydration(page: Page) {
@@ -82,6 +87,15 @@ async function waitForMediaHydration(page: Page) {
   await page.waitForFunction(() => {
     const button = [...document.querySelectorAll("button")].find(
       (element) => element.textContent?.trim() === "Upload image",
+    );
+    return button && Object.keys(button).some((key) => key.startsWith("__reactProps$"));
+  });
+}
+
+async function waitForUsersHydration(page: Page) {
+  await page.waitForFunction(() => {
+    const button = [...document.querySelectorAll("button")].find(
+      (element) => element.textContent?.trim() === "New user",
     );
     return button && Object.keys(button).some((key) => key.startsWith("__reactProps$"));
   });
@@ -544,10 +558,14 @@ test.describe("CMS content workflow", () => {
       await expect(page.getByRole("button", { name: "Delete permanently" })).toHaveCount(0);
       await expect(card).toHaveCount(0);
 
-      const remaining = await sql<{ id: string }[]>`
-        select id from content_media where id = ${mediaId}
-      `;
-      expect(remaining).toHaveLength(0);
+      await expect
+        .poll(async () => {
+          const remaining = await sql<{ id: string }[]>`
+            select id from content_media where id = ${mediaId}
+          `;
+          return remaining.length;
+        }, { timeout: 15_000 })
+        .toBe(0);
     } finally {
       await sql`
         update content_documents
@@ -576,14 +594,14 @@ test.describe("CMS content workflow", () => {
       `;
 
       // A temporary password forces a change before any CMS screen opens.
-      await signIn(page, email, password);
+      await signIn(page, email, password, /\/admin\/change-password$/);
       await expect(page).toHaveURL(/\/admin\/change-password$/);
       await page.goto("/admin/content");
       await expect(page).toHaveURL(/\/admin\/change-password$/);
 
       await sql`update staff_users set must_change_password = false where email = ${email}`;
-      await signIn(page, email, password);
       await page.goto("/admin/content/site");
+      await waitForEditorHydration(page);
       await expect(page.getByRole("button", { name: "Save draft" })).toBeVisible();
 
       // Every editor control keeps an accessible name for keyboard and screen-reader use.
@@ -603,20 +621,34 @@ test.describe("CMS content workflow", () => {
       await expect(page.getByRole("button", { name: "Create" })).toHaveCount(0);
 
       // Deactivating the account invalidates its live session immediately.
+      await page.context().clearCookies();
       await signIn(page, environment.adminEmail!, environment.adminPassword!);
       await page.goto("/admin/users");
-      const row = page.locator("form", { has: page.locator(`input[value="${email}"]`) });
-      await row.getByRole("checkbox").uncheck();
-      await row.getByRole("button", { name: "Save" }).click();
-      await expect(page.getByText("User updated.")).toBeVisible();
+      await waitForUsersHydration(page);
+      const row = page.locator("li").filter({ hasText: email });
+      await row.getByRole("button", { name: /Actions for/ }).click();
+      await page.getByRole("menuitem", { name: "Edit account" }).click();
+      await page.getByRole("switch", { name: "Account is active" }).click();
+      await page.getByRole("button", { name: "Save changes" }).click();
+      await expect(page.getByRole("heading", { name: "Edit account" })).toHaveCount(0);
 
-      const [deactivated] = await sql<{ is_active: boolean; session_version: number }[]>`
-        select is_active, session_version from staff_users where email = ${email}
-      `;
-      expect(deactivated.is_active).toBe(false);
-      expect(deactivated.session_version).toBeGreaterThan(1);
+      let deactivated: { is_active: boolean; session_version: number } | undefined;
+      await expect
+        .poll(async () => {
+          [deactivated] = await sql<{ is_active: boolean; session_version: number }[]>`
+            select is_active, session_version from staff_users where email = ${email}
+          `;
+          return deactivated?.is_active;
+        }, { timeout: 15_000 })
+        .toBe(false);
+      expect(deactivated?.is_active).toBe(false);
+      expect(deactivated?.session_version).toBeGreaterThan(1);
 
-      await signIn(page, email, password);
+      await page.context().clearCookies();
+      await page.goto("/admin/login");
+      await page.getByLabel("Email address").fill(email);
+      await page.getByLabel("Password").fill(password);
+      await page.getByRole("button", { name: "Sign in" }).click();
       await expect(page.getByRole("alert")).toContainText("Invalid email or password");
     } finally {
       await sql`delete from staff_users where email = ${email}`.catch(() => undefined);
@@ -638,18 +670,27 @@ test.describe("CMS content workflow", () => {
 
       await signIn(page, environment.adminEmail!, environment.adminPassword!);
       await page.goto("/admin/users");
-      const own = page.locator("form", {
-        has: page.locator(`input[value="${environment.adminEmail!.toLowerCase()}"]`),
-      });
-      await own.getByRole("checkbox").uncheck();
-      await own.getByRole("button", { name: "Save" }).click();
-      await expect(page.getByRole("alert")).toContainText("cannot deactivate your own account");
+      await waitForUsersHydration(page);
+      const own = page.locator("li").filter({ hasText: environment.adminEmail!.toLowerCase() });
+      await own.getByRole("button", { name: /Actions for/ }).click();
+      await page.getByRole("menuitem", { name: "Edit account" }).click();
+      await page.getByRole("switch", { name: "Account is active" }).click();
+      const save = page.getByRole("button", { name: "Save changes" });
+      await save.click();
+      await expect(save).toBeDisabled();
+      await expect(save).toBeEnabled();
 
       if (activeAdmins.length === 1) {
         await page.reload();
-        await own.getByRole("combobox").selectOption("staff");
-        await own.getByRole("button", { name: "Save" }).click();
-        await expect(page.getByRole("alert")).toContainText("final active administrator");
+        await waitForUsersHydration(page);
+        await own.getByRole("button", { name: /Actions for/ }).click();
+        await page.getByRole("menuitem", { name: "Edit account" }).click();
+        await page.getByRole("combobox", { name: "Role" }).click();
+        await page.getByRole("option", { name: /^Staff/ }).click();
+        const demote = page.getByRole("button", { name: "Save changes" });
+        await demote.click();
+        await expect(demote).toBeDisabled();
+        await expect(demote).toBeEnabled();
       }
 
       const [unchanged] = await sql<{ is_active: boolean; role: string }[]>`
