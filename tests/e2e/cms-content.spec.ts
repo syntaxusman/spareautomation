@@ -71,6 +71,13 @@ async function signIn(page: Page, email: string, password: string) {
   await expect(page).toHaveURL(/\/admin(?:\?|$)/, { timeout: 20_000 });
 }
 
+async function waitForEditorHydration(page: Page) {
+  await page.waitForFunction(() => {
+    const input = document.querySelector("#field-about-us-title");
+    return input && Object.keys(input).some((key) => key.startsWith("__reactProps$"));
+  });
+}
+
 test("public pages render their compiled content without an admin session", async ({ page }) => {
   test.slow();
   await page.goto("/disclaimer");
@@ -327,10 +334,7 @@ test.describe("CMS content workflow", () => {
       ).toBeVisible();
       await page.goto("/admin/content/pages");
       await expect(page).toHaveURL(/\/admin\/content\/pages$/);
-      await page.waitForFunction(() => {
-        const input = document.querySelector("#field-about-us-title");
-        return input && Object.keys(input).some((key) => key.startsWith("__reactProps$"));
-      });
+      await waitForEditorHydration(page);
 
       // Another editor saves a change while this editor holds an older version.
       const draft = structuredClone(original.draft_data) as Record<string, { title: string }>;
@@ -350,10 +354,7 @@ test.describe("CMS content workflow", () => {
         timeout: 15_000,
       });
       await page.getByRole("button", { name: "Reload" }).click();
-      await page.waitForFunction(() => {
-        const input = document.querySelector("#field-about-us-title");
-        return input && Object.keys(input).some((key) => key.startsWith("__reactProps$"));
-      });
+      await waitForEditorHydration(page);
       await page
         .getByRole("navigation", { name: "Pages in this document" })
         .getByRole("button", { name: "Disclaimer" })
@@ -369,6 +370,7 @@ test.describe("CMS content workflow", () => {
       await expect(page.getByRole("heading", { level: 1, name: editedTitle })).toBeVisible();
 
       await page.goto("/admin/content/pages");
+      await waitForEditorHydration(page);
       await page.getByRole("button", { name: "Publish", exact: true }).click();
       await expect
         .poll(async () => {
@@ -391,6 +393,7 @@ test.describe("CMS content workflow", () => {
 
       // Restoring an older revision changes the draft only.
       await page.goto("/admin/content/pages");
+      await waitForEditorHydration(page);
       page.once("dialog", (dialog) => dialog.accept());
       await page
         .locator("aside")
@@ -403,6 +406,7 @@ test.describe("CMS content workflow", () => {
       await expect(page.getByRole("heading", { level: 1, name: editedTitle })).toBeVisible();
 
       await page.goto("/admin/content/pages");
+      await waitForEditorHydration(page);
       await page.getByRole("button", { name: "Publish", exact: true }).click();
       await expect
         .poll(async () => {
