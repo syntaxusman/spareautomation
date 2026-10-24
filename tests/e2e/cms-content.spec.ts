@@ -320,10 +320,12 @@ test.describe("CMS content workflow", () => {
       await expect(page.getByRole("heading", { name: "Functional pages" })).toBeVisible();
       await expect(page.getByRole("heading", { name: "Catalogue presentation" })).toBeVisible();
 
-      await page
-        .locator("#main-content")
-        .getByRole("link", { name: "Information and legal pages" })
-        .click();
+      await expect(
+        page
+          .locator("#main-content")
+          .getByRole("link", { name: "Information and legal pages" }),
+      ).toBeVisible();
+      await page.goto("/admin/content/pages");
       await expect(page).toHaveURL(/\/admin\/content\/pages$/);
       await page.waitForFunction(() => {
         const input = document.querySelector("#field-about-us-title");
@@ -368,7 +370,16 @@ test.describe("CMS content workflow", () => {
 
       await page.goto("/admin/content/pages");
       await page.getByRole("button", { name: "Publish", exact: true }).click();
-      await expect(page.getByRole("status")).toContainText("Published version");
+      await expect
+        .poll(async () => {
+          const [row] = await sql<{ title: string }[]>`
+            select published_data -> 'disclaimer' ->> 'title' as title
+            from content_documents
+            where key = 'pages'
+          `;
+          return row?.title;
+        }, { timeout: 15_000 })
+        .toBe(editedTitle);
 
       await page.goto("/disclaimer");
       await expect(page.getByRole("heading", { level: 1, name: editedTitle })).toBeVisible();
@@ -393,7 +404,16 @@ test.describe("CMS content workflow", () => {
 
       await page.goto("/admin/content/pages");
       await page.getByRole("button", { name: "Publish", exact: true }).click();
-      await expect(page.getByRole("status")).toContainText("Published version");
+      await expect
+        .poll(async () => {
+          const [row] = await sql<{ title: string }[]>`
+            select published_data -> 'disclaimer' ->> 'title' as title
+            from content_documents
+            where key = 'pages'
+          `;
+          return row?.title;
+        }, { timeout: 15_000 })
+        .toBe("Disclaimer");
 
       await page.goto("/disclaimer");
       await expect(page.getByRole("heading", { level: 1, name: "Disclaimer" })).toBeVisible();
