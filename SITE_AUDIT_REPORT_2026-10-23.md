@@ -3,7 +3,7 @@
 **Audit date:** 23 October 2026  
 **Project:** Spares Automation storefront and CMS  
 **Audit environment:** Local TanStack Start development build, Chromium, 390×844 mobile, 768×1024 tablet, and 1440×900 desktop; additional existing coverage at 320 px  
-**Overall recommendation:** **Conditional no-go for production release** until the P1 release gates below are closed.
+**Current recommendation (validated 24 October 2026):** **Conditional Go** after the external Shopify/data and business sign-off actions in the remediation update are closed.
 
 ## 1. Executive summary
 
@@ -32,9 +32,11 @@ The code-side recommendations from this audit have now been implemented while re
 - Automated accessibility smoke tests, incremental catalogue tests, production Core Web Vitals reporting, content validation, bundle checks, and isolated one-worker CI execution for stateful CMS tests were added.
 - Lint now passes with zero warnings and zero errors.
 
-Post-remediation verification: **125 tests passed and 25 database/viewport-dependent tests were intentionally skipped**, with zero failures; typecheck, lint, content validation, production build, and bundle budget all pass. The remaining release gates are external: correct the eight Shopify records identified by `npm run check:catalog`, and run the 25 database-dependent tests against a reachable staging PostgreSQL service.
+Post-remediation verification is complete. The PostgreSQL-backed GitHub Actions run passed with **111 tests passed, 39 intentionally skipped, and 0 failed**; typecheck, lint, content validation, production build, and the bundle budget also passed. The implementation commit is `f7c123772d41c11c3df86461cfa7ee6c68b5f337`, verified by [Quality run 40090429965](https://github.com/zubbicodes/spareautomation/actions/runs/40090429965). The local matrix separately passed 125 tests with 25 intentional environment/viewport skips.
 
-## 2. Scorecard
+The remaining release gates are external: correct the eight Shopify records identified by `npm run check:catalog`, validate authenticated Shopify customer/order returns plus checkout and notification hand-offs in staging, and obtain business/legal content approval.
+
+## 2. Original audit scorecard
 
 | Area | Score | Assessment |
 |---|---:|---|
@@ -46,7 +48,7 @@ Post-remediation verification: **125 tests passed and 25 database/viewport-depen
 | Performance and resilience | 6.0/10 | Acceptable normal navigation in many cases; large client chunk and poor database-outage behaviour need attention |
 | Catalogue/content readiness | 5.5/10 | Product data presentation is the largest customer-facing trust risk |
 
-**Overall: 6.9/10 — solid foundation, material pre-release work remains.**
+**Original overall score: 6.9/10. Post-remediation score: 8.1/10.**
 
 ## 3. Audit scope and evidence
 
@@ -67,7 +69,7 @@ Evidence files are in `audit-artifacts/`:
 - `contact-mobile.png`
 - `audit-ui-metrics.mjs`
 
-### Verification results
+### Initial audit verification results
 
 | Check | Result |
 |---|---|
@@ -92,7 +94,7 @@ The 13 skipped focused tests are primarily integration/viewport-specific cases. 
 
 PostgreSQL was unavailable in the local environment. The UI correctly fell back to compiled content on public pages, but database-backed completion could not be validated. Live payment or order placement was deliberately not performed.
 
-**Recommendation:** Run the complete E2E suite against a clean staging PostgreSQL database and non-production Shopify/test integrations. Verify record creation, validation failures, duplicate handling, authentication/session expiry, CMS publish/rollback, upload lifecycle, email/notification delivery, checkout hand-off, and failure recovery. This is a release gate, not evidence that these flows are broken.
+**Remediation status — repository scope closed:** The complete CI suite now runs against PostgreSQL and verifies CMS publishing/rollback, media lifecycle, authentication roles, administrator safeguards, persistence, and failure handling. External staging verification remains required for live Shopify-authenticated customer/order return fixtures, checkout hand-off, and outbound notifications.
 
 #### F-02: Catalogue data reduces trust and may create pricing ambiguity
 

@@ -1,126 +1,132 @@
-# Spares Automation — UI/UX and Functional Improvement Report
+# Spares Automation — Final UI/UX and Functional Improvement Report
 
-**Report date:** 23 October 2026  
-**Project:** Spares Automation storefront and CMS  
-**Prepared for:** Management review  
-**Implementation status:** Code remediation complete; conditional release readiness
+**Audit date:** 23 October 2026
+
+**Final validation:** 24 October 2026
+
+**Project:** Spares Automation storefront and CMS
+
+**Prepared for:** Management review
+
+**Implementation status:** Code remediation complete; full CI green; conditional production go
 
 ## Executive summary
 
-The full UI/UX, responsive, accessibility, functional-resilience, performance, and code-quality improvement programme has been completed without redesigning the storefront or changing its established visual identity.
+The UI/UX, responsive, accessibility, functional-resilience, performance, and code-quality improvement programme is complete. The work preserved the established storefront design and user journeys; no visual redesign was introduced.
 
-The work reduced mobile interface obstruction, shortened the initial catalogue experience, improved incomplete-product handling, strengthened accessibility, reduced the primary JavaScript bundle, eliminated lint warnings, and added automated safeguards for future releases.
+The internal quality score improved from **6.9/10 to 8.1/10**. Mobile obstruction and catalogue length were reduced, incomplete product data is handled safely, accessibility was strengthened, the main JavaScript bundle was brought below its enforced limit, and all lint warnings were removed.
 
-The revised internal audit score is **8.1/10**, up from **6.9/10**. The application is technically stronger and all completed repository checks pass. Final production approval remains conditional on two external activities: correcting eight Shopify catalogue records and running the database-dependent tests against an available staging PostgreSQL service.
+The final GitHub Actions pipeline passed against PostgreSQL with **111 tests passed, 39 intentionally skipped, and 0 failed**. Lint, TypeScript, content validation, production build, and the bundle-size gate also passed. Database-backed CMS publishing, preview, revision restore, media lifecycle, staff permissions, and administrator safeguards are now covered by the CI workflow.
+
+Production approval is a **Conditional Go**. Remaining actions concern live Shopify catalogue data, external integration validation, and business/legal sign-off—not unresolved repository failures.
 
 ## Business impact
 
-- Customers see more usable content within the first mobile viewport.
-- Products with missing or zero pricing can no longer appear to be free or enter checkout incorrectly.
-- Product-image gaps now use a deliberate branded fallback rather than a broken presentation.
-- Catalogue browsing starts with a manageable result set and retains the existing Load more journey.
-- Database outages generate less delay and substantially less repetitive logging.
-- Accessibility improvements make headings, product links, status messages, and key touch targets easier to use.
-- Performance, catalogue quality, content integrity, and responsive behaviour are now protected by automated release checks.
+- Customers see more useful content in the first mobile viewport.
+- Missing or zero prices can no longer look like free products or enter checkout incorrectly.
+- Missing product images now use a deliberate branded fallback.
+- Catalogue browsing begins with 12 products and retains the existing **Load more** journey.
+- Database outages produce less delay and substantially less repetitive logging.
+- Accessibility improvements strengthen headings, labels, product links, status messages, and touch targets.
+- Automated release checks now protect performance, responsive behaviour, content integrity, catalogue quality, and CMS workflows.
 
 ## Measured results
 
-| Measure | Before | After | Result |
+| Measure | Before | Final result | Outcome |
 |---|---:|---:|---|
-| Overall internal audit score | 6.9/10 | 8.1/10 | Improved |
+| Internal audit score | 6.9/10 | 8.1/10 | Improved |
 | Mobile header height | 169 px | 145 px | 14% reduction |
 | Cookie banner viewport coverage | 43.4% | 32.7% | 25% relative reduction |
-| Initial catalogue products | 18 observed / up to 48 requested | 12 | Faster, shorter first view |
+| Initial catalogue products | 18 observed / up to 48 requested | 12 | Shorter first view |
 | Mobile catalogue page height | 12,545 px | 9,342 px | 26% reduction |
-| Largest client JavaScript chunk | 530.56 kB | 500.96 kB | Under the enforced 500 KiB budget |
+| Largest client JavaScript chunk | 530.56 kB | 500.96 kB / 489.22 KiB | Below 500 KiB gate |
 | Lint warnings | 18 | 0 | Cleared |
-| Final automated test result | Incomplete under DB outage | 125 passed, 25 intentionally skipped, 0 failed | Passing within available environment |
+| PostgreSQL-backed CI suite | Not previously available | 111 passed, 39 skipped, 0 failed | Passed |
 
 ## Completed improvements
 
-### 1. Product and catalogue integrity
+### Product and catalogue integrity
 
 - Zero or invalid prices display **Request price** instead of £0.00.
 - Products without a valid purchasable variant cannot be added to the basket.
 - Missing images use a branded **Image unavailable** state.
-- The catalogue now loads 12 products initially with incremental loading.
+- The catalogue loads 12 products initially with incremental loading.
 - A live Shopify catalogue validation command was added for release use.
 
-### 2. Mobile and responsive experience
+### Mobile and responsive experience
 
 - Reduced mobile header height while preserving navigation, search, account, and basket access.
-- Reduced cookie-banner copy, spacing, and vertical footprint while keeping accept, reject, and preference controls equally accessible.
+- Reduced cookie-banner copy, spacing, and footprint while retaining accept, reject, and preference controls.
 - Increased priority mobile touch targets to 44 px.
 - Increased very small operational text to a more readable 10–12 px range.
 - Confirmed no horizontal overflow across the audited routes and viewports.
 
-### 3. Accessibility
+### Accessibility
 
-- Restored a page-level H1 to the credit-account journey without changing its visible layout.
+- Restored a page-level H1 to the credit-account journey without altering its visible layout.
 - Added explicit accessible names to product links and relevant actions.
 - Improved live status announcements for add-to-cart feedback.
-- Added automated checks for headings, landmarks, image alternatives, duplicate IDs, unnamed form controls, and horizontal overflow.
+- Added automated checks for headings, landmarks, image alternatives, duplicate IDs, labelled form controls, and horizontal overflow.
 
-### 4. Performance and maintainability
+### Performance, quality, and resilience
 
-- Separated the home-page implementation from its route definition to improve code splitting.
-- Reduced the largest client chunk below the new CI budget.
+- Improved route-level code splitting and reduced the largest client chunk below the enforced CI budget.
 - Added production Core Web Vitals reporting for LCP, CLS, INP, FCP, and TTFB.
 - Eliminated all ESLint warnings.
-- Isolated CI browser execution to prevent stateful CMS tests from racing over the shared staging database.
+- Added progressive database failure backoff, migration retry cooldown, and compact rate-limited outage logging.
+- Preserved compiled-content fallback so public pages remain available during a CMS database outage.
+- Added deterministic, database-backed CMS workflow coverage and isolated stateful CI execution.
+- Fixed legacy PostgreSQL enum compatibility and protected CMS drafts from published-content cache mutation.
+- Corrected nested CMS preview rendering and made publish/restore verification outcome-based.
 
-### 5. Database resilience
-
-- Added progressive database failure backoff from 30 seconds up to 5 minutes.
-- Added a migration retry cooldown after repeated failures.
-- Replaced repeated full stack traces with compact, rate-limited outage logging.
-- Preserved the existing compiled-content fallback so public pages remain available during a CMS database outage.
-
-## Verification completed
+## Final verification
 
 | Check | Final result |
 |---|---|
+| GitHub Actions Quality workflow | Passed — run 40090429965 |
 | ESLint | Passed — 0 errors, 0 warnings |
 | TypeScript | Passed |
 | Content validation | Passed — 9 documents, 7 block types, 22 editable pages, 71 markers |
+| PostgreSQL-backed browser/unit suite | 111 passed, 39 intentionally skipped, 0 failed |
+| Local browser/unit suite | 125 passed, 25 intentionally skipped, 0 failed |
 | Production build | Passed |
 | Bundle budget | Passed — largest chunk 489.22 KiB on disk, below 500 KiB |
-| Automated browser/unit suite | 125 passed, 25 skipped, 0 failed |
-| Targeted accessibility regression suite | 16 passed, 0 failed |
-| Visual responsive review | Passed with the established design preserved |
+| Targeted accessibility regression suite | Passed |
+| Responsive visual review | Passed with the established design preserved |
 
-The 25 skipped cases require database-backed or viewport-specific conditions unavailable in the local environment. The CI workflow is configured to run with PostgreSQL and includes the new quality gates.
+The local and CI totals differ because their test matrices and available integrations differ. CI skips are deliberate conditions such as viewport/project exclusions, unavailable live Shopify credentials, and authenticated Shopify customer/order fixtures; they are not failed tests.
 
-## Outstanding external actions
+**Verified implementation commit:** `f7c123772d41c11c3df86461cfa7ee6c68b5f337`
 
-These items cannot be completed safely from the source repository alone and should be assigned before final production sign-off.
+**CI evidence:** https://github.com/zubbicodes/spareautomation/actions/runs/40090429965
+
+## Remaining external actions
 
 ### Shopify catalogue owner
 
-Correct eight live catalogue records identified by `npm run check:catalog`:
+Correct the eight live records identified by `npm run check:catalog`:
 
 - Seven records have zero/invalid pricing and no positive-price purchasable variant.
 - One record is missing its primary product image.
 
-Until corrected, the storefront safely presents these items as **Request price**, unavailable, or with a branded image fallback.
+The storefront safely presents these products as **Request price**, unavailable, or with the branded image fallback until the source records are corrected.
 
-### Release/DevOps owner
+### Release/operations owner
 
-- Provide a reachable staging PostgreSQL service.
-- Run the complete database-backed test suite.
-- Verify contact, credit application, CMS publishing, authentication/session, notification, and checkout hand-off journeys using non-production integrations.
+- Validate live Shopify credentials and the authenticated customer/order return fixture in the intended staging environment.
+- Complete staging checks for checkout hand-off and outbound notifications using non-production integrations.
+- Obtain business-owner approval for legal, catalogue, and operational content.
 
 ## Release recommendation
 
-**Conditional Go.** The repository-level improvements are complete and verified, and no visual redesign has been introduced. Production release can proceed after:
+**Conditional Go.** Repository implementation and automated validation are complete, the full PostgreSQL-backed CI pipeline is green, and the existing UI/UX has been preserved. Production release may proceed after:
 
 1. The eight Shopify source records are corrected.
-2. The database-dependent suite passes against staging PostgreSQL.
-3. The business owner confirms the legal and operational content.
+2. Shopify-authenticated, checkout, return, and notification integrations are confirmed in staging.
+3. The business owner signs off legal and operational content.
 
 ## Supporting evidence
 
 - Full technical audit: `SITE_AUDIT_REPORT_2026-10-23.md`
 - Visual evidence and measurement scripts: `audit-artifacts/`
 - Release checks: `npm run check:content`, `npm run check:catalog`, and `npm run check:bundle`
-
