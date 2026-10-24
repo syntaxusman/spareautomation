@@ -78,8 +78,10 @@ async function signIn(
 
 async function waitForEditorHydration(page: Page) {
   await page.waitForFunction(() => {
-    const input = document.querySelector("#field-about-us-title");
-    return input && Object.keys(input).some((key) => key.startsWith("__reactProps$"));
+    const button = [...document.querySelectorAll("button")].find(
+      (element) => element.textContent?.trim() === "Save draft",
+    );
+    return button && Object.keys(button).some((key) => key.startsWith("__reactProps$"));
   });
 }
 
