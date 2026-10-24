@@ -78,6 +78,15 @@ async function waitForEditorHydration(page: Page) {
   });
 }
 
+async function waitForMediaHydration(page: Page) {
+  await page.waitForFunction(() => {
+    const button = [...document.querySelectorAll("button")].find(
+      (element) => element.textContent?.trim() === "Upload image",
+    );
+    return button && Object.keys(button).some((key) => key.startsWith("__reactProps$"));
+  });
+}
+
 test("public pages render their compiled content without an admin session", async ({ page }) => {
   test.slow();
   await page.goto("/disclaimer");
@@ -463,21 +472,27 @@ test.describe("CMS content workflow", () => {
     try {
       await signIn(page, environment.adminEmail!, environment.adminPassword!);
       await page.goto("/admin/media");
-      await page.getByRole("button", { name: "Upload", exact: true }).first().click();
-      await page.locator('input[name="file"]').setInputFiles({
+      await waitForMediaHydration(page);
+      await page.getByRole("button", { name: "Upload image", exact: true }).first().click();
+      await page.locator("#media-file").setInputFiles({
         name: "e2e-content-image.png",
         mimeType: "image/png",
         buffer: TINY_PNG,
       });
-      await page.locator('input[name="defaultAlt"]').fill(alt);
-      await page.getByRole("button", { name: "Upload" }).click();
-      await expect(page.getByRole("status")).toContainText("remains private");
+      await page.locator("#media-alt").fill(alt);
+      await page.getByRole("button", { name: "Upload", exact: true }).click();
+      let uploaded: { id: string } | undefined;
+      await expect
+        .poll(async () => {
+          [uploaded] = await sql<{ id: string }[]>`
+            select id from content_media where default_alt = ${alt} order by created_at desc limit 1
+          `;
+          return uploaded?.id;
+        }, { timeout: 15_000 })
+        .toMatch(/^[a-f0-9]{32}$/);
 
-      const card = page.locator("article", { hasText: alt });
+      const card = page.locator("li").filter({ has: page.getByRole("img", { name: alt }) });
       await expect(card).toContainText("Draft only");
-      const [uploaded] = await sql<{ id: string }[]>`
-        select id from content_media where default_alt = ${alt} order by created_at desc limit 1
-      `;
       mediaId = uploaded?.id ?? "";
       expect(mediaId).toMatch(/^[a-f0-9]{32}$/);
 
@@ -503,10 +518,17 @@ test.describe("CMS content workflow", () => {
       `;
 
       await page.goto("/admin/media");
-      await page.locator("article", { hasText: alt }).getByRole("button", { name: /Actions for/ }).click();
-      page.once("dialog", (dialog) => dialog.accept());
+      await waitForMediaHydration(page);
+      await card.getByRole("button", { name: /Actions for/ }).click();
       await page.getByRole("menuitem", { name: "Delete" }).click();
-      await expect(page.getByRole("alert")).toContainText("referenced by draft or published content");
+      await page.getByRole("button", { name: "Delete permanently" }).click();
+      await expect(page.getByRole("button", { name: "Delete permanently" })).toHaveCount(0);
+      await expect
+        .poll(async () => {
+          const rows = await sql<{ id: string }[]>`select id from content_media where id = ${mediaId}`;
+          return rows.length;
+        }, { timeout: 15_000 })
+        .toBe(1);
 
       await sql`
         update content_documents
@@ -515,10 +537,12 @@ test.describe("CMS content workflow", () => {
       `;
 
       await page.goto("/admin/media");
-      await page.locator("article", { hasText: alt }).getByRole("button", { name: /Actions for/ }).click();
-      page.once("dialog", (dialog) => dialog.accept());
+      await waitForMediaHydration(page);
+      await card.getByRole("button", { name: /Actions for/ }).click();
       await page.getByRole("menuitem", { name: "Delete" }).click();
-      await expect(page.locator("article", { hasText: alt })).toHaveCount(0);
+      await page.getByRole("button", { name: "Delete permanently" }).click();
+      await expect(page.getByRole("button", { name: "Delete permanently" })).toHaveCount(0);
+      await expect(card).toHaveCount(0);
 
       const remaining = await sql<{ id: string }[]>`
         select id from content_media where id = ${mediaId}
