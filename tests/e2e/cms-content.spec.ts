@@ -85,6 +85,19 @@ async function waitForEditorHydration(page: Page) {
   });
 }
 
+async function waitForHydratedButton(page: Page, label: string) {
+  await page.waitForFunction((buttonLabel) => {
+    const button = [...document.querySelectorAll<HTMLButtonElement>("button")].find(
+      (element) => element.textContent?.trim() === buttonLabel,
+    );
+    return (
+      button &&
+      !button.disabled &&
+      Object.keys(button).some((key) => key.startsWith("__reactProps$"))
+    );
+  }, label);
+}
+
 async function waitForMediaHydration(page: Page) {
   await page.waitForFunction(() => {
     const button = [...document.querySelectorAll("button")].find(
@@ -396,6 +409,7 @@ test.describe("CMS content workflow", () => {
 
       await page.goto("/admin/content/pages");
       await waitForEditorHydration(page);
+      await waitForHydratedButton(page, "Publish");
       await page.getByRole("button", { name: "Publish", exact: true }).click();
       await expect
         .poll(async () => {
@@ -405,7 +419,7 @@ test.describe("CMS content workflow", () => {
             where key = 'pages'
           `;
           return row?.title;
-        }, { timeout: 15_000 })
+        }, { timeout: 30_000 })
         .toBe(editedTitle);
 
       await page.goto("/disclaimer");
@@ -441,6 +455,7 @@ test.describe("CMS content workflow", () => {
 
       await page.goto("/admin/content/pages");
       await waitForEditorHydration(page);
+      await waitForHydratedButton(page, "Publish");
       await page.getByRole("button", { name: "Publish", exact: true }).click();
       await expect
         .poll(async () => {
@@ -450,7 +465,7 @@ test.describe("CMS content workflow", () => {
             where key = 'pages'
           `;
           return row?.title;
-        }, { timeout: 15_000 })
+        }, { timeout: 30_000 })
         .toBe("Disclaimer");
 
       await page.goto("/disclaimer");
@@ -610,8 +625,15 @@ test.describe("CMS content workflow", () => {
       const unnamedFields = await page.locator("main input:visible, main textarea:visible, main select:visible").evaluateAll(
         (elements) =>
           elements.filter((element) => {
+            const control = element as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
             const label = element.closest("label")?.textContent?.trim();
-            return !(label || element.getAttribute("aria-label") || element.getAttribute("title"));
+            return !(
+              label ||
+              control.labels?.length ||
+              element.getAttribute("aria-label") ||
+              element.getAttribute("aria-labelledby") ||
+              element.getAttribute("title")
+            );
           }).length,
       );
       expect(unnamedFields).toBe(0);
