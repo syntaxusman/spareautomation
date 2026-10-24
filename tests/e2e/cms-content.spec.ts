@@ -394,13 +394,22 @@ test.describe("CMS content workflow", () => {
       // Restoring an older revision changes the draft only.
       await page.goto("/admin/content/pages");
       await waitForEditorHydration(page);
-      page.once("dialog", (dialog) => dialog.accept());
       await page
         .locator("aside")
-        .getByRole("button", { name: "Restore to draft" })
+        .getByRole("button", { name: /^Restore version/ })
         .last()
         .click();
-      await expect(page.getByText(/Draft v\d+ · Live v\d+/)).toBeVisible();
+      await page.getByRole("button", { name: "Restore into draft" }).click();
+      await expect
+        .poll(async () => {
+          const [row] = await sql<{ title: string }[]>`
+            select draft_data -> 'disclaimer' ->> 'title' as title
+            from content_documents
+            where key = 'pages'
+          `;
+          return row?.title;
+        }, { timeout: 15_000 })
+        .toBe("Disclaimer");
 
       await page.goto("/disclaimer");
       await expect(page.getByRole("heading", { level: 1, name: editedTitle })).toBeVisible();
@@ -563,7 +572,7 @@ test.describe("CMS content workflow", () => {
       );
       expect(unnamedFields).toBe(0);
       await expect(page.getByRole("button", { name: "Publish", exact: true })).toHaveCount(0);
-      await expect(page.getByRole("button", { name: "Restore to draft" })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: /^Restore version/ })).toHaveCount(0);
 
       await page.goto("/admin/users");
       await expect(page).not.toHaveURL(/\/admin\/users$/);
