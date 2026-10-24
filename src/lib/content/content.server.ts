@@ -366,7 +366,8 @@ export async function loadDraftBundle(): Promise<Record<string, DraftBundleEntry
  * visual editor still renders.
  */
 export async function loadDraftContentBundle(): Promise<ContentBundle> {
-  const published = await loadPublishedContentBundle();
+  // Draft overlays must never mutate the cached bundle used by public pages.
+  const published = structuredClone(await loadPublishedContentBundle());
   try {
     const rows = await getDb()
       .select({ key: contentDocuments.key, data: contentDocuments.draftData })

@@ -28,16 +28,20 @@ export const getContentIndex = createServerFn({ method: "GET" }).handler(async (
   return listContentDocuments();
 });
 
-export const getContentEditor = createServerFn({ method: "GET" })
+export const getContentEditor = createServerFn({ method: "POST" })
   .inputValidator(z.object({ key: keySchema }))
   .handler(async ({ data }) => {
     await requireStaff();
     const key = data.key as ContentKey;
-    const [document, revisions, previewContent] = await Promise.all([
+    const [document, revisions, publishedContent] = await Promise.all([
       loadContentDocument(key),
       listContentRevisions(key),
       loadPublishedContentBundle(),
     ]);
+    // Never overlay drafts onto the shared published-content cache. Apart from
+    // leaking unpublished wording into later public reads, mutating that object
+    // can make staff previews show an older document from another request.
+    const previewContent = structuredClone(publishedContent);
     previewContent[key] = document.draftData as never;
     return {
       document,
