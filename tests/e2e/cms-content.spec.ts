@@ -200,7 +200,7 @@ test.describe("CMS dashboard", () => {
     await sidebar.getByText("Business details", { exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/content\/site$/);
     await expect(page.getByRole("button", { name: "Save draft" }).first()).toBeVisible();
-    await expect(page.getByRole("button", { name: "Publish" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Publish", exact: true })).toBeVisible();
 
     await sidebar.getByText("Media", { exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/media$/);
@@ -367,7 +367,7 @@ test.describe("CMS content workflow", () => {
       await expect(page.getByRole("heading", { level: 1, name: editedTitle })).toBeVisible();
 
       await page.goto("/admin/content/pages");
-      await page.getByRole("button", { name: "Publish" }).click();
+      await page.getByRole("button", { name: "Publish", exact: true }).click();
       await expect(page.getByRole("status")).toContainText("Published version");
 
       await page.goto("/disclaimer");
@@ -392,7 +392,7 @@ test.describe("CMS content workflow", () => {
       await expect(page.getByRole("heading", { level: 1, name: editedTitle })).toBeVisible();
 
       await page.goto("/admin/content/pages");
-      await page.getByRole("button", { name: "Publish" }).click();
+      await page.getByRole("button", { name: "Publish", exact: true }).click();
       await expect(page.getByRole("status")).toContainText("Published version");
 
       await page.goto("/disclaimer");
@@ -538,7 +538,7 @@ test.describe("CMS content workflow", () => {
           }).length,
       );
       expect(unnamedFields).toBe(0);
-      await expect(page.getByRole("button", { name: "Publish" })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "Publish", exact: true })).toHaveCount(0);
       await expect(page.getByRole("button", { name: "Restore to draft" })).toHaveCount(0);
 
       await page.goto("/admin/users");
