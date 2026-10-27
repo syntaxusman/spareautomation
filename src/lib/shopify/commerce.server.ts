@@ -215,6 +215,14 @@ type PricingProduct = {
   variants: PricingVariant[];
 };
 
+export type PricingProductOption = {
+  id: string;
+  title: string;
+  status: string;
+  vendor: string;
+  productType: string;
+};
+
 export type PricePreviewItem = PricingVariant & {
   productId: string;
   productTitle: string;
@@ -223,7 +231,7 @@ export type PricePreviewItem = PricingVariant & {
 };
 
 export type PricePreview = {
-  query: string;
+  productIds: string[];
   percentage: number;
   productCount: number;
   variantCount: number;
@@ -234,6 +242,43 @@ export type PricePreview = {
 };
 
 const MAX_PRICE_VARIANTS = 5_000;
+const MAX_PRICING_PRODUCTS = 10_000;
+
+export async function listProductsForPriceSelection(): Promise<PricingProductOption[]> {
+  const products: PricingProductOption[] = [];
+  let after: string | undefined;
+
+  do {
+    const result = await shopifyAdmin<{
+      products: {
+        nodes: PricingProductOption[];
+        pageInfo: { hasNextPage: boolean; endCursor: string | null };
+      };
+    }>(
+      `#graphql
+        query ProductsForPriceSelection($after: String) {
+          products(first: 250, after: $after, sortKey: TITLE) {
+            nodes { id title status vendor productType }
+            pageInfo { hasNextPage endCursor }
+          }
+        }
+      `,
+      { after },
+    );
+
+    products.push(...result.products.nodes);
+    if (products.length > MAX_PRICING_PRODUCTS) {
+      throw new Error(
+        `The store has more than ${MAX_PRICING_PRODUCTS.toLocaleString("en-GB")} products. Contact the developer to raise the catalogue selection limit.`,
+      );
+    }
+    after = result.products.pageInfo.hasNextPage
+      ? (result.products.pageInfo.endCursor ?? undefined)
+      : undefined;
+  } while (after);
+
+  return products;
+}
 
 async function getRemainingVariants(productId: string, after: string): Promise<PricingVariant[]> {
   const variants: PricingVariant[] = [];
@@ -268,33 +313,32 @@ async function getRemainingVariants(productId: string, after: string): Promise<P
   return variants;
 }
 
-async function loadPricingProducts(
-  query: string,
+async function loadPricingProductsByIds(
+  productIds: string[],
 ): Promise<{ products: PricingProduct[]; currencyCode: string }> {
   const products: PricingProduct[] = [];
   let currencyCode = "GBP";
-  let after: string | undefined;
-  do {
+  let variantCount = 0;
+
+  for (let offset = 0; offset < productIds.length; offset += 250) {
+    const ids = productIds.slice(offset, offset + 250);
     const result = await shopifyAdmin<{
       shop: { currencyCode: string };
-      products: {
-        nodes: Array<{
-          id: string;
-          title: string;
-          status: string;
-          variants: {
-            nodes: PricingVariant[];
-            pageInfo: { hasNextPage: boolean; endCursor: string | null };
-          };
-        }>;
-        pageInfo: { hasNextPage: boolean; endCursor: string | null };
-      };
+      nodes: Array<{
+        id: string;
+        title: string;
+        status: string;
+        variants: {
+          nodes: PricingVariant[];
+          pageInfo: { hasNextPage: boolean; endCursor: string | null };
+        };
+      } | null>;
     }>(
       `#graphql
-        query ProductsForPriceUpdate($query: String, $after: String) {
+        query SelectedProductsForPriceUpdate($ids: [ID!]!) {
           shop { currencyCode }
-          products(first: 100, after: $after, query: $query, sortKey: TITLE) {
-            nodes {
+          nodes(ids: $ids) {
+            ... on Product {
               id
               title
               status
@@ -303,15 +347,15 @@ async function loadPricingProducts(
                 pageInfo { hasNextPage endCursor }
               }
             }
-            pageInfo { hasNextPage endCursor }
           }
         }
       `,
-      { query: query.trim() || undefined, after },
+      { ids },
     );
     currencyCode = result.shop.currencyCode;
 
-    for (const product of result.products.nodes) {
+    for (const product of result.nodes) {
+      if (!product) continue;
       const variants = [...product.variants.nodes];
       if (product.variants.pageInfo.hasNextPage && product.variants.pageInfo.endCursor) {
         variants.push(
@@ -319,21 +363,30 @@ async function loadPricingProducts(
         );
       }
       products.push({ id: product.id, title: product.title, status: product.status, variants });
-      if (products.reduce((total, item) => total + item.variants.length, 0) > MAX_PRICE_VARIANTS) {
+      variantCount += variants.length;
+      if (variantCount > MAX_PRICE_VARIANTS) {
         throw new Error(
-          `This selection exceeds the ${MAX_PRICE_VARIANTS.toLocaleString("en-GB")} variant safety limit. Narrow the Shopify search query and run it in batches.`,
+          `The selected products exceed the ${MAX_PRICE_VARIANTS.toLocaleString("en-GB")} variant safety limit. Select fewer products and run them in batches.`,
         );
       }
     }
-    after = result.products.pageInfo.hasNextPage
-      ? (result.products.pageInfo.endCursor ?? undefined)
-      : undefined;
-  } while (after);
+  }
+
+  products.sort((a, b) => a.title.localeCompare(b.title));
   return { products, currencyCode };
 }
 
-export async function buildPricePreview(query: string, percentage: number): Promise<PricePreview> {
-  const { products, currencyCode } = await loadPricingProducts(query);
+export async function buildPricePreview(
+  productIds: string[],
+  percentage: number,
+): Promise<PricePreview> {
+  const uniqueProductIds = [...new Set(productIds)].sort();
+  const { products, currencyCode } = await loadPricingProductsByIds(uniqueProductIds);
+  if (products.length !== uniqueProductIds.length) {
+    throw new Error(
+      "One or more selected Shopify products are no longer available. Reload the product list and select again.",
+    );
+  }
   const items: PricePreviewItem[] = [];
   let skippedZeroPrices = 0;
 
@@ -354,7 +407,7 @@ export async function buildPricePreview(query: string, percentage: number): Prom
   }
 
   return {
-    query: query.trim(),
+    productIds: uniqueProductIds,
     percentage,
     productCount: products.length,
     variantCount: items.length,

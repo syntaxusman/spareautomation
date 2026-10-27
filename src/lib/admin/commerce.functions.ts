@@ -8,6 +8,7 @@ import {
   applyPricePreview,
   buildPricePreview,
   listAdminQuotes,
+  listProductsForPriceSelection,
   sendAdminQuoteEmail,
 } from "../shopify/commerce.server";
 import { MAX_PRICE_PERCENTAGE, MIN_PRICE_PERCENTAGE } from "../shopify/commerce";
@@ -47,8 +48,10 @@ export const sendQuoteEmail = createServerFn({ method: "POST" })
     return { ok: true, invoiceSentAt: sent.invoiceSentAt };
   });
 
+const productId = z.string().regex(/^gid:\/\/shopify\/Product\/\d+$/);
+
 const priceInput = z.object({
-  query: z.string().trim().max(500).default("status:active"),
+  productIds: z.array(productId).min(1, "Select at least one product.").max(10_000),
   percentage: z.coerce
     .number()
     .min(MIN_PRICE_PERCENTAGE)
@@ -56,11 +59,16 @@ const priceInput = z.object({
     .refine((value) => value !== 0, "Enter a percentage other than zero."),
 });
 
+export const listPricingProducts = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdminRole();
+  return listProductsForPriceSelection();
+});
+
 export const previewBulkPriceUpdate = createServerFn({ method: "POST" })
   .inputValidator(priceInput)
   .handler(async ({ data }) => {
     await requireAdminRole();
-    return buildPricePreview(data.query, data.percentage);
+    return buildPricePreview(data.productIds, data.percentage);
   });
 
 export const applyBulkPriceUpdate = createServerFn({ method: "POST" })
@@ -80,7 +88,7 @@ export const applyBulkPriceUpdate = createServerFn({ method: "POST" })
 
     // Re-query immediately before mutation so stale browser previews never
     // overwrite a newer Shopify price with an old calculation.
-    const preview = await buildPricePreview(data.query, data.percentage);
+    const preview = await buildPricePreview(data.productIds, data.percentage);
     if (preview.variantCount !== data.expectedVariantCount) {
       throw new Error(
         `The selection changed from ${data.expectedVariantCount} to ${preview.variantCount} variants. Preview it again before applying prices.`,
@@ -103,7 +111,9 @@ export const applyBulkPriceUpdate = createServerFn({ method: "POST" })
           targetType: "shopify_product_variant",
           targetId: `${preview.variantCount}-variants`,
           details: {
-            query: preview.query || "all products",
+            selectedProductCount: preview.productIds.length,
+            selectedProductIds: preview.productIds.slice(0, 250),
+            productIdsTruncated: preview.productIds.length > 250,
             percentage: preview.percentage,
             error: error instanceof Error ? error.message.slice(0, 1_000) : "Unknown error",
           },
@@ -121,7 +131,9 @@ export const applyBulkPriceUpdate = createServerFn({ method: "POST" })
         targetType: "shopify_product_variant",
         targetId: `${result.updatedVariants}-variants`,
         details: {
-          query: preview.query || "all products",
+          selectedProductCount: preview.productIds.length,
+          selectedProductIds: preview.productIds.slice(0, 250),
+          productIdsTruncated: preview.productIds.length > 250,
           percentage: preview.percentage,
           productCount: result.updatedProducts,
           variantCount: result.updatedVariants,

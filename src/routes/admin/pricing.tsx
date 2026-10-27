@@ -1,6 +1,15 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { ArrowDown, ArrowUp, Calculator, CheckCircle2, Tags } from "lucide-react";
-import { useState } from "react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Calculator,
+  CheckCircle2,
+  PackageSearch,
+  RefreshCw,
+  Search,
+  Tags,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { CmsShell } from "@/components/admin/CmsShell";
@@ -9,11 +18,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getAdminSession } from "@/lib/admin/admin.functions";
-import { applyBulkPriceUpdate, previewBulkPriceUpdate } from "@/lib/admin/commerce.functions";
+import {
+  applyBulkPriceUpdate,
+  listPricingProducts,
+  previewBulkPriceUpdate,
+} from "@/lib/admin/commerce.functions";
 import { cmsHead } from "@/lib/admin/head";
 import { moneyAmount } from "@/lib/shopify/commerce";
 
 type Preview = Awaited<ReturnType<typeof previewBulkPriceUpdate>>;
+type PricingProduct = Awaited<ReturnType<typeof listPricingProducts>>[number];
 
 export const Route = createFileRoute("/admin/pricing")({
   head: () => cmsHead("Bulk pricing"),
@@ -29,12 +43,73 @@ export const Route = createFileRoute("/admin/pricing")({
 
 function PricingPage() {
   const { staff } = Route.useLoaderData();
-  const [query, setQuery] = useState("status:active");
+  const [products, setProducts] = useState<PricingProduct[]>([]);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [productSearch, setProductSearch] = useState("");
+  const [catalogueLoading, setCatalogueLoading] = useState(true);
+  const [catalogueError, setCatalogueError] = useState("");
   const [percentage, setPercentage] = useState("5");
   const [preview, setPreview] = useState<Preview | null>(null);
   const [confirmation, setConfirmation] = useState("");
   const [busy, setBusy] = useState<"preview" | "apply" | "">("");
   const [completed, setCompleted] = useState<{ variants: number; products: number } | null>(null);
+
+  async function loadProducts() {
+    setCatalogueLoading(true);
+    setCatalogueError("");
+    try {
+      setProducts(await listPricingProducts());
+    } catch (error) {
+      setCatalogueError(
+        error instanceof Error ? error.message : "Shopify products could not be loaded.",
+      );
+    } finally {
+      setCatalogueLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadProducts();
+  }, []);
+
+  const visibleProducts = useMemo(() => {
+    const search = productSearch.trim().toLowerCase();
+    if (!search) return products;
+    return products.filter((product) =>
+      [product.title, product.vendor, product.productType, product.status]
+        .join(" ")
+        .toLowerCase()
+        .includes(search),
+    );
+  }, [productSearch, products]);
+
+  const selectedIds = useMemo(() => new Set(selectedProductIds), [selectedProductIds]);
+  const allVisibleSelected =
+    visibleProducts.length > 0 && visibleProducts.every((product) => selectedIds.has(product.id));
+
+  function resetPreview() {
+    setPreview(null);
+    setConfirmation("");
+    setCompleted(null);
+  }
+
+  function toggleProduct(productId: string) {
+    setSelectedProductIds((current) =>
+      current.includes(productId)
+        ? current.filter((id) => id !== productId)
+        : [...current, productId],
+    );
+    resetPreview();
+  }
+
+  function toggleVisibleProducts() {
+    const visibleIds = new Set(visibleProducts.map((product) => product.id));
+    setSelectedProductIds((current) => {
+      if (allVisibleSelected) return current.filter((id) => !visibleIds.has(id));
+      return [...new Set([...current, ...visibleIds])];
+    });
+    resetPreview();
+  }
 
   async function buildPreview() {
     setBusy("preview");
@@ -43,7 +118,7 @@ function PricingPage() {
     setCompleted(null);
     try {
       const next = await previewBulkPriceUpdate({
-        data: { query, percentage: Number(percentage) },
+        data: { productIds: selectedProductIds, percentage: Number(percentage) },
       });
       setPreview(next);
       if (!next.variantCount) toast.info("No positive-price variants matched this selection.");
@@ -69,24 +144,111 @@ function PricingPage() {
         price lists, compare-at prices, and existing orders are not changed.
       </Notice>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
-        <SectionCard title="Select prices">
+      <div className="mt-4 grid gap-4 lg:grid-cols-[28rem_minmax(0,1fr)]">
+        <SectionCard
+          title="Select products"
+          description={`${selectedProductIds.length.toLocaleString("en-GB")} of ${products.length.toLocaleString("en-GB")} selected`}
+        >
           <div className="space-y-5 p-4">
             <div className="space-y-1.5">
-              <Label htmlFor="price-query">Shopify product query</Label>
-              <Input
-                id="price-query"
-                value={query}
-                onChange={(event) => {
-                  setQuery(event.target.value);
-                  setPreview(null);
-                }}
-                placeholder="status:active"
-              />
-              <p className="text-[11px] leading-4 text-muted-foreground">
-                Leave empty for every product. Examples: <code>tag:spares</code>,{" "}
-                <code>vendor:Siemens</code>, or <code>product_type:Sensor</code>.
-              </p>
+              <Label htmlFor="product-search">Find products</Label>
+              <div className="relative">
+                <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="product-search"
+                  type="search"
+                  value={productSearch}
+                  onChange={(event) => setProductSearch(event.target.value)}
+                  placeholder="Search name, vendor or product type"
+                  className="pl-9"
+                />
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-md border">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/40 px-3 py-2">
+                <span className="text-[11px] text-muted-foreground">
+                  {visibleProducts.length.toLocaleString("en-GB")} products shown
+                </span>
+                <div className="flex items-center gap-1">
+                  {selectedProductIds.length > 0 ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setSelectedProductIds([]);
+                        resetPreview();
+                      }}
+                    >
+                      Clear all
+                    </Button>
+                  ) : null}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    disabled={catalogueLoading || visibleProducts.length === 0}
+                    onClick={toggleVisibleProducts}
+                  >
+                    {allVisibleSelected ? "Clear shown" : "Select shown"}
+                  </Button>
+                </div>
+              </div>
+
+              {catalogueLoading ? (
+                <div className="flex min-h-40 items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Spinner /> Loading Shopify products
+                </div>
+              ) : catalogueError ? (
+                <div className="p-4 text-center">
+                  <p className="text-sm text-destructive">{catalogueError}</p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="mt-3"
+                    onClick={() => void loadProducts()}
+                  >
+                    <RefreshCw /> Try again
+                  </Button>
+                </div>
+              ) : visibleProducts.length === 0 ? (
+                <div className="flex min-h-40 flex-col items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground">
+                  <PackageSearch className="size-6" />
+                  No Shopify products match this search.
+                </div>
+              ) : (
+                <div className="max-h-[24rem] divide-y overflow-y-auto">
+                  {visibleProducts.map((product) => (
+                    <label
+                      key={product.id}
+                      className="flex cursor-pointer items-start gap-3 px-3 py-3 transition-colors hover:bg-muted/40"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(product.id)}
+                        onChange={() => toggleProduct(product.id)}
+                        className="mt-0.5 size-4 shrink-0 accent-primary"
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium">{product.title}</span>
+                        <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
+                          {[product.vendor, product.productType].filter(Boolean).join(" · ") ||
+                            "No vendor or product type"}
+                        </span>
+                      </span>
+                      <Pill
+                        tone={product.status === "ACTIVE" ? "success" : "neutral"}
+                        dot
+                        className="capitalize"
+                      >
+                        {product.status.toLowerCase()}
+                      </Pill>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -101,7 +263,7 @@ function PricingPage() {
                   value={percentage}
                   onChange={(event) => {
                     setPercentage(event.target.value);
-                    setPreview(null);
+                    resetPreview();
                   }}
                   className="pr-9"
                 />
@@ -122,7 +284,12 @@ function PricingPage() {
             <Button
               className="w-full"
               onClick={() => void buildPreview()}
-              disabled={Boolean(busy) || !percentage || Number(percentage) === 0}
+              disabled={
+                Boolean(busy) ||
+                selectedProductIds.length === 0 ||
+                !percentage ||
+                Number(percentage) === 0
+              }
             >
               {busy === "preview" ? <Spinner /> : <Calculator />} Preview changes
             </Button>
@@ -148,13 +315,13 @@ function PricingPage() {
             <EmptyState
               icon={<Tags />}
               title="Preview required"
-              copy="Choose a Shopify search and percentage. No price is changed until the preview count is confirmed."
+              copy="Select one or more Shopify products and enter a percentage. No price is changed until the preview count is confirmed."
             />
           ) : preview.variantCount === 0 ? (
             <EmptyState
               icon={<Tags />}
               title="No prices matched"
-              copy="Change the Shopify query and preview again."
+              copy="The selected products have no positive-price variants. Choose other products and preview again."
             />
           ) : (
             <div className="space-y-4">
@@ -230,7 +397,7 @@ function PricingPage() {
                         try {
                           const result = await applyBulkPriceUpdate({
                             data: {
-                              query: preview.query,
+                              productIds: preview.productIds,
                               percentage: preview.percentage,
                               expectedVariantCount: preview.variantCount,
                               expectedFingerprint: preview.fingerprint,

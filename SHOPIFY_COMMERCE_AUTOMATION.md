@@ -8,9 +8,10 @@ products, variant prices, draft orders, secure checkout links and completed orde
 - `/admin/quotes` lists the latest Shopify draft orders, including website quote requests, and lets
   staff send or resend the quotation email. Shopify inserts the secure checkout link and records the
   draft as `INVOICE_SENT`.
-- `/admin/pricing` lets administrators select products with Shopify search syntax, preview a
-  percentage increase or decrease, and apply it only after typing the exact variant count. Zero-price
-  enquiry products are skipped. Every success or failure is written to the CMS activity log.
+- `/admin/pricing` loads the Shopify catalogue so administrators can search, tick specific products,
+  preview a percentage increase or decrease, and apply it only after typing the exact variant count.
+  Zero-price enquiry products are skipped. Every success or failure is written to the CMS activity
+  log.
 - `/api/shopify/orders-create` receives Shopify's `orders/create` webhook and asks Shopify to send the
   order invoice automatically. HMAC verification, shop-domain validation and persisted webhook IDs
   prevent forged or duplicate emails.
@@ -126,12 +127,12 @@ whether both should remain enabled; this implementation intentionally sends the 
 ## Safe operating procedure for prices
 
 1. Sign in as a CMS administrator and open **Commerce → Bulk pricing**.
-2. Start with a narrow query such as `tag:price-batch-october` and the intended percentage.
-3. Review the current and new prices in the preview.
+2. Search the product list, select the intended products, and enter the percentage.
+3. Review every selected product and the current/new variant prices in the preview.
 4. Export or otherwise retain a Shopify catalogue backup before a large production run.
 5. Type the exact confirmation phrase and apply the prices.
 6. Check the CMS activity log and spot-check affected products in Shopify.
 
 The tool changes only the base variant `price`. It does not change compare-at prices, Markets price
 lists, discounts, draft orders, or completed orders. Selections above 5,000 positive-price variants
-must be split into smaller Shopify search batches.
+must be split into smaller selected-product batches.
