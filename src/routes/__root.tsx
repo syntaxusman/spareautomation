@@ -197,11 +197,38 @@ function RootComponent() {
     <EditModeProvider enabled={editMode}>
       <ContentProvider value={content}>
         <ClientMonitoring />
+        {isAdmin ? null : <PublicImageProtection />}
         <Outlet />
         {isAdmin ? null : <CookieConsent />}
       </ContentProvider>
     </EditModeProvider>
   );
+}
+
+function PublicImageProtection() {
+  useEffect(() => {
+    const isProtectedImageEvent = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return false;
+      return Boolean(
+        (target instanceof HTMLImageElement && target.closest("main")) ||
+          target.closest(".protected-image-frame"),
+      );
+    };
+
+    const preventProtectedImageAction = (event: Event) => {
+      if (isProtectedImageEvent(event)) event.preventDefault();
+    };
+
+    document.addEventListener("contextmenu", preventProtectedImageAction);
+    document.addEventListener("dragstart", preventProtectedImageAction);
+    return () => {
+      document.removeEventListener("contextmenu", preventProtectedImageAction);
+      document.removeEventListener("dragstart", preventProtectedImageAction);
+    };
+  }, []);
+
+  return null;
 }
 
 function ClientMonitoring() {

@@ -319,6 +319,19 @@ test("every product exposes tabbed support content and useful empty states", asy
   await expect(page.getByText("Excl. VAT", { exact: true })).toBeVisible();
   await expect(page.getByText("Incl. VAT (20%)", { exact: true })).toBeVisible();
 
+  const protectedProductImage = page.getByRole("button", { name: /^Enlarge / }).locator("img");
+  await expect(protectedProductImage).toHaveAttribute("draggable", "false");
+  const contextMenuBlocked = await protectedProductImage.evaluate((image) => {
+    const event = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+    return !image.dispatchEvent(event);
+  });
+  expect(contextMenuBlocked).toBeTruthy();
+  const watermarkContent = await page
+    .locator(".protected-image-frame")
+    .first()
+    .evaluate((frame) => getComputedStyle(frame, "::after").content);
+  expect(watermarkContent).toContain("SPARES AUTOMATION");
+
   const exclusivePrice = Number(
     (
       await page

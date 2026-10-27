@@ -304,7 +304,11 @@ function ProductGallery({
 
   return (
     <section className="bg-surface p-4 md:p-6 lg:p-8">
-      <div className="relative aspect-[4/3] max-h-[620px] overflow-hidden bg-[oklch(0.96_0.005_250)]">
+      <div
+        className={`relative aspect-[4/3] max-h-[620px] overflow-hidden bg-[oklch(0.96_0.005_250)] ${
+          activeImage ? "protected-image-frame" : ""
+        }`}
+      >
         {activeImage ? (
           <button
             type="button"
@@ -319,6 +323,7 @@ function ProductGallery({
               width={activeImage.width ?? 1000}
               height={activeImage.height ?? 1000}
               alt={activeImage.altText ?? productTitle}
+              draggable={false}
               className="h-full w-full object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-[1.02]"
             />
             <span aria-hidden="true" className="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center bg-charcoal-deep/90 text-white shadow-md">
@@ -363,7 +368,7 @@ function ProductGallery({
               key={image.url}
               type="button"
               onClick={() => onSelectImage(image)}
-              className={`aspect-square overflow-hidden border bg-background transition-colors hover:border-accent ${
+              className={`protected-image-frame protected-image-frame--compact aspect-square overflow-hidden border bg-background transition-colors hover:border-accent ${
                 activeImage?.url === image.url ? "border-accent" : "border-rule"
               }`}
               aria-label={`View ${image.altText ?? productTitle}`}
@@ -374,6 +379,7 @@ function ProductGallery({
                 height={image.height ?? 240}
                 loading="lazy"
                 alt={image.altText ?? productTitle}
+                draggable={false}
                 className="h-full w-full object-contain mix-blend-multiply"
               />
             </button>
@@ -429,7 +435,7 @@ function ProductGallery({
 
             <div className="relative min-h-0 flex-1 overflow-auto bg-[oklch(0.96_0.005_250)]">
               <div
-                className="relative min-h-full min-w-full"
+                className="protected-image-frame relative min-h-full min-w-full"
                 style={{ width: `${zoom * 100}%`, height: `${zoom * 100}%` }}
               >
                 <img

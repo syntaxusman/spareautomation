@@ -48,6 +48,47 @@
 }
 
 @layer components {
+  main img {
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  .protected-image-frame {
+    isolation: isolate;
+    position: relative;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  .protected-image-frame::after {
+    content: "© SPARES AUTOMATION";
+    position: absolute;
+    bottom: 0.65rem;
+    left: 0.65rem;
+    z-index: 5;
+    pointer-events: none;
+    border: 1px solid rgb(255 255 255 / 0.32);
+    background: rgb(20 24 30 / 0.68);
+    padding: 0.3rem 0.45rem;
+    color: rgb(255 255 255 / 0.94);
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.65);
+  }
+
+  .protected-image-frame--compact::after {
+    content: "© SA";
+    bottom: 0.25rem;
+    left: 0.25rem;
+    padding: 0.2rem 0.25rem;
+    font-size: 0.45rem;
+    letter-spacing: 0.08em;
+  }
+
   @media (min-width: 64rem) and (hover: hover) and (pointer: fine) {
     .hero-range-panel {
       opacity: 0;

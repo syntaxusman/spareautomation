@@ -26,7 +26,11 @@ export function ProductCard({ product }: ProductCardProps) {
         aria-label={`View ${product.title}`}
         className="block"
       >
-        <div className="relative aspect-square overflow-hidden bg-[oklch(0.96_0.005_250)]">
+        <div
+          className={`relative aspect-square overflow-hidden bg-[oklch(0.96_0.005_250)] ${
+            product.featuredImage ? "protected-image-frame" : ""
+          }`}
+        >
           {product.featuredImage ? (
             <img
               src={shopifyImageUrl(product.featuredImage.url, 640)}
@@ -36,6 +40,7 @@ export function ProductCard({ product }: ProductCardProps) {
               height={product.featuredImage.height ?? 640}
               alt={product.featuredImage.altText ?? product.title}
               loading="lazy"
+              draggable={false}
               className="h-full w-full object-cover mix-blend-multiply transition-transform duration-700 group-hover:scale-105"
             />
           ) : (
