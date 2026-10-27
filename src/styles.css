@@ -61,8 +61,28 @@
     -webkit-touch-callout: none;
   }
 
-  .protected-image-frame::after {
-    content: "© SPARES AUTOMATION";
+  .protected-image-frame[data-product-watermark]::before {
+    content: attr(data-product-watermark);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 4;
+    pointer-events: none;
+    width: max-content;
+    max-width: 82%;
+    transform: translate(-50%, -50%) rotate(-24deg);
+    color: rgb(255 255 255 / 0.3);
+    font-family: var(--font-mono);
+    font-size: clamp(0.72rem, 2.4vw, 1.5rem);
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    line-height: 1;
+    text-align: center;
+    text-shadow: 0 1px 4px rgb(0 0 0 / 0.75);
+  }
+
+  .protected-image-frame[data-product-watermark]::after {
+    content: attr(data-product-watermark);
     position: absolute;
     bottom: 0.65rem;
     left: 0.65rem;
@@ -81,12 +101,15 @@
   }
 
   .protected-image-frame--compact::after {
-    content: "© SA";
     bottom: 0.25rem;
     left: 0.25rem;
     padding: 0.2rem 0.25rem;
     font-size: 0.45rem;
     letter-spacing: 0.08em;
+  }
+
+  .protected-image-frame--compact::before {
+    display: none;
   }
 
   @media (min-width: 64rem) and (hover: hover) and (pointer: fine) {

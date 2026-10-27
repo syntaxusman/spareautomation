@@ -16,6 +16,7 @@
     "test": "playwright test",
     "check": "bun run lint && bun run typecheck && bun run check:content && bun run test && bun run build && bun run check:bundle",
     "shopify:sync-collections": "node --experimental-strip-types --env-file-if-exists=.env scripts/sync-shopify-collections.ts",
+    "shopify:setup-automation": "node --experimental-strip-types --env-file-if-exists=.env scripts/setup-shopify-automation.ts",
     "format": "prettier --write ."
   },
   "dependencies": {

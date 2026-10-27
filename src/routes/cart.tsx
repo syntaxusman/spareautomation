@@ -11,13 +11,9 @@ import {
   updateShopifyCartLine,
 } from "@/lib/api/shopify.functions";
 import { clearStoredCartId, getStoredCartId, setStoredCartId } from "@/lib/shopify/cart";
-import {
-  addVat,
-  calculateVat,
-  formatMoney,
-  STANDARD_VAT_RATE,
-} from "@/lib/shopify/format";
+import { formatMoney } from "@/lib/shopify/format";
 import type { ShopifyCart } from "@/lib/shopify/types";
+import { productImageWatermarkProps } from "@/lib/shopify/watermark";
 import { useContent } from "@/lib/content/ContentContext";
 import { useEditable } from "@/lib/content/edit-mode";
 import { getPublishedContent } from "@/lib/content/content.functions";
@@ -99,9 +95,6 @@ function CartPage() {
   }
 
   const isEmpty = !cart || cart.lines.length === 0;
-  const vatAmount = cart ? calculateVat(cart.cost.subtotalAmount) : null;
-  const totalIncludingVat = cart ? addVat(cart.cost.subtotalAmount) : null;
-
   return (
     <div className="min-h-screen bg-background text-ink">
       <SiteHeader />
@@ -150,9 +143,16 @@ function CartPage() {
                   className="grid grid-cols-[72px_1fr] gap-4 border border-rule bg-surface p-3 md:grid-cols-[96px_1fr] md:gap-5 md:p-4 lg:grid-cols-[120px_1fr_auto]"
                 >
                   <Link
+                    {...(line.merchandise.product.featuredImage
+                      ? productImageWatermarkProps()
+                      : {})}
                     to="/products/$handle"
                     params={{ handle: line.merchandise.product.handle }}
-                    className="aspect-square overflow-hidden bg-[oklch(0.96_0.005_250)]"
+                    className={`aspect-square overflow-hidden bg-[oklch(0.96_0.005_250)] ${
+                      line.merchandise.product.featuredImage
+                        ? "protected-image-frame protected-image-frame--compact"
+                        : ""
+                    }`}
                   >
                     {line.merchandise.product.featuredImage ? (
                       <img
@@ -161,6 +161,7 @@ function CartPage() {
                           line.merchandise.product.featuredImage.altText ??
                           line.merchandise.product.title
                         }
+                        draggable={false}
                         className="h-full w-full object-cover mix-blend-multiply"
                       />
                     ) : null}
@@ -173,7 +174,7 @@ function CartPage() {
                     >
                       {line.merchandise.product.title}
                     </Link>
-                <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-muted">
+                    <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-muted">
                       {line.merchandise.title}
                       {line.merchandise.sku ? ` / ${line.merchandise.sku}` : ""}
                     </div>
@@ -232,14 +233,12 @@ function CartPage() {
                   <span>{cart.totalQuantity}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-ink-muted">Subtotal (excl. VAT)</span>
+                  <span className="text-ink-muted">Market subtotal</span>
                   <span>{formatMoney(cart.cost.subtotalAmount)}</span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-ink-muted">
-                    VAT ({Math.round(STANDARD_VAT_RATE * 100)}%)
-                  </span>
-                  <span>{vatAmount ? formatMoney(vatAmount) : "—"}</span>
+                <div className="flex items-start justify-between gap-4 text-sm">
+                  <span className="text-ink-muted">Taxes and duties</span>
+                  <span className="text-right font-medium">Calculated at checkout</span>
                 </div>
                 <div className="flex items-start justify-between gap-4 text-sm">
                   <span className="text-ink-muted">Delivery charge</span>
@@ -249,14 +248,14 @@ function CartPage() {
               <div className="mt-6">
                 <div className="flex items-center justify-between gap-4">
                   <span className="font-display text-lg font-bold uppercase tracking-tight">
-                    Total incl. VAT
+                    Estimated total
                   </span>
                   <span className="font-display text-xl font-bold md:text-2xl">
-                    {totalIncludingVat ? formatMoney(totalIncludingVat) : "—"}
+                    {formatMoney(cart.cost.totalAmount)}
                   </span>
                 </div>
                 <p className="mt-2 text-right text-xs text-ink-muted">
-                  Delivery is added at checkout after you enter the delivery address.
+                  Final tax, duties, and delivery depend on the checkout destination.
                 </p>
               </div>
               <a

@@ -8,11 +8,7 @@ services:
     volumes:
       - cms_db:/var/lib/postgresql/data
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}",
-        ]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -23,6 +19,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_PRODUCT_IMAGE_WATERMARK_ENABLED: ${VITE_PRODUCT_IMAGE_WATERMARK_ENABLED:-true}
+        VITE_PRODUCT_IMAGE_WATERMARK_TEXT: ${VITE_PRODUCT_IMAGE_WATERMARK_TEXT:-© SPARES AUTOMATION}
     # Coolify reaches the app through its internal proxy network. Local host
     # port publishing lives in docker-compose.override.yml so production does
     # not compete for a fixed port on the deployment server.
@@ -49,11 +48,14 @@ services:
       MAIL_FROM: ${MAIL_FROM:-Spares Automation <trade@spares-automation.co.uk>}
       SALES_DESK_EMAIL: ${SALES_DESK_EMAIL:-trade@spares-automation.co.uk}
       SHOPIFY_STORE_DOMAIN: ${SHOPIFY_STORE_DOMAIN:-}
+      SHOPIFY_DEFAULT_COUNTRY: ${SHOPIFY_DEFAULT_COUNTRY:-GB}
       SHOPIFY_STOREFRONT_ACCESS_TOKEN: ${SHOPIFY_STOREFRONT_ACCESS_TOKEN:-}
       SHOPIFY_STOREFRONT_PRIVATE_ACCESS_TOKEN: ${SHOPIFY_STOREFRONT_PRIVATE_ACCESS_TOKEN:-}
       SHOPIFY_STOREFRONT_API_VERSION: ${SHOPIFY_STOREFRONT_API_VERSION:-2026-01}
       SHOPIFY_ADMIN_ACCESS_TOKEN: ${SHOPIFY_ADMIN_ACCESS_TOKEN:-}
-      SHOPIFY_ADMIN_API_VERSION: ${SHOPIFY_ADMIN_API_VERSION:-2026-01}
+      SHOPIFY_ADMIN_API_VERSION: ${SHOPIFY_ADMIN_API_VERSION:-2026-07}
+      SHOPIFY_APP_URL: ${SHOPIFY_APP_URL:-}
+      SHOPIFY_WEBHOOK_SECRET: ${SHOPIFY_WEBHOOK_SECRET:-}
     env_file:
       - .env
     volumes:

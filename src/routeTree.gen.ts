@@ -50,6 +50,8 @@ import { Route as ApiWebVitalsRouteImport } from './routes/api.web-vitals'
 import { Route as AdminVisualRouteImport } from './routes/admin/visual'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminQuotesRouteImport } from './routes/admin/quotes'
+import { Route as AdminPricingRouteImport } from './routes/admin/pricing'
 import { Route as AdminMediaRouteImport } from './routes/admin/media'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminChangePasswordRouteImport } from './routes/admin/change-password'
@@ -57,6 +59,7 @@ import { Route as AdminActivityRouteImport } from './routes/admin/activity'
 import { Route as AdminSubmissionsIndexRouteImport } from './routes/admin/submissions.index'
 import { Route as AdminContentIndexRouteImport } from './routes/admin/content.index'
 import { Route as ContentMediaIdFilenameRouteImport } from './routes/content-media/$id/$filename'
+import { Route as ApiShopifyOrdersCreateRouteImport } from './routes/api.shopify.orders-create'
 import { Route as AdminSubmissionsIdRouteImport } from './routes/admin/submissions.$id'
 import { Route as AdminContentKeyRouteImport } from './routes/admin/content.$key'
 import { Route as AdminContentKeyPreviewRouteImport } from './routes/admin/content.$key.preview'
@@ -268,6 +271,16 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/admin/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminQuotesRoute = AdminQuotesRouteImport.update({
+  id: '/admin/quotes',
+  path: '/admin/quotes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPricingRoute = AdminPricingRouteImport.update({
+  id: '/admin/pricing',
+  path: '/admin/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminMediaRoute = AdminMediaRouteImport.update({
   id: '/admin/media',
   path: '/admin/media',
@@ -301,6 +314,11 @@ const AdminContentIndexRoute = AdminContentIndexRouteImport.update({
 const ContentMediaIdFilenameRoute = ContentMediaIdFilenameRouteImport.update({
   id: '/content-media/$id/$filename',
   path: '/content-media/$id/$filename',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopifyOrdersCreateRoute = ApiShopifyOrdersCreateRouteImport.update({
+  id: '/api/shopify/orders-create',
+  path: '/api/shopify/orders-create',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminSubmissionsIdRoute = AdminSubmissionsIdRouteImport.update({
@@ -368,6 +386,8 @@ export interface FileRoutesByFullPath {
   '/admin/change-password': typeof AdminChangePasswordRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/media': typeof AdminMediaRoute
+  '/admin/pricing': typeof AdminPricingRoute
+  '/admin/quotes': typeof AdminQuotesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/visual': typeof AdminVisualRoute
@@ -377,6 +397,7 @@ export interface FileRoutesByFullPath {
   '/products/': typeof ProductsIndexRoute
   '/admin/content/$key': typeof AdminContentKeyRouteWithChildren
   '/admin/submissions/$id': typeof AdminSubmissionsIdRoute
+  '/api/shopify/orders-create': typeof ApiShopifyOrdersCreateRoute
   '/content-media/$id/$filename': typeof ContentMediaIdFilenameRoute
   '/admin/content/': typeof AdminContentIndexRoute
   '/admin/submissions/': typeof AdminSubmissionsIndexRoute
@@ -423,6 +444,8 @@ export interface FileRoutesByTo {
   '/admin/change-password': typeof AdminChangePasswordRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/media': typeof AdminMediaRoute
+  '/admin/pricing': typeof AdminPricingRoute
+  '/admin/quotes': typeof AdminQuotesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/visual': typeof AdminVisualRoute
@@ -432,6 +455,7 @@ export interface FileRoutesByTo {
   '/products': typeof ProductsIndexRoute
   '/admin/content/$key': typeof AdminContentKeyRouteWithChildren
   '/admin/submissions/$id': typeof AdminSubmissionsIdRoute
+  '/api/shopify/orders-create': typeof ApiShopifyOrdersCreateRoute
   '/content-media/$id/$filename': typeof ContentMediaIdFilenameRoute
   '/admin/content': typeof AdminContentIndexRoute
   '/admin/submissions': typeof AdminSubmissionsIndexRoute
@@ -479,6 +503,8 @@ export interface FileRoutesById {
   '/admin/change-password': typeof AdminChangePasswordRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/media': typeof AdminMediaRoute
+  '/admin/pricing': typeof AdminPricingRoute
+  '/admin/quotes': typeof AdminQuotesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/visual': typeof AdminVisualRoute
@@ -488,6 +514,7 @@ export interface FileRoutesById {
   '/products/': typeof ProductsIndexRoute
   '/admin/content/$key': typeof AdminContentKeyRouteWithChildren
   '/admin/submissions/$id': typeof AdminSubmissionsIdRoute
+  '/api/shopify/orders-create': typeof ApiShopifyOrdersCreateRoute
   '/content-media/$id/$filename': typeof ContentMediaIdFilenameRoute
   '/admin/content/': typeof AdminContentIndexRoute
   '/admin/submissions/': typeof AdminSubmissionsIndexRoute
@@ -536,6 +563,8 @@ export interface FileRouteTypes {
     | '/admin/change-password'
     | '/admin/login'
     | '/admin/media'
+    | '/admin/pricing'
+    | '/admin/quotes'
     | '/admin/settings'
     | '/admin/users'
     | '/admin/visual'
@@ -545,6 +574,7 @@ export interface FileRouteTypes {
     | '/products/'
     | '/admin/content/$key'
     | '/admin/submissions/$id'
+    | '/api/shopify/orders-create'
     | '/content-media/$id/$filename'
     | '/admin/content/'
     | '/admin/submissions/'
@@ -591,6 +621,8 @@ export interface FileRouteTypes {
     | '/admin/change-password'
     | '/admin/login'
     | '/admin/media'
+    | '/admin/pricing'
+    | '/admin/quotes'
     | '/admin/settings'
     | '/admin/users'
     | '/admin/visual'
@@ -600,6 +632,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/admin/content/$key'
     | '/admin/submissions/$id'
+    | '/api/shopify/orders-create'
     | '/content-media/$id/$filename'
     | '/admin/content'
     | '/admin/submissions'
@@ -646,6 +679,8 @@ export interface FileRouteTypes {
     | '/admin/change-password'
     | '/admin/login'
     | '/admin/media'
+    | '/admin/pricing'
+    | '/admin/quotes'
     | '/admin/settings'
     | '/admin/users'
     | '/admin/visual'
@@ -655,6 +690,7 @@ export interface FileRouteTypes {
     | '/products/'
     | '/admin/content/$key'
     | '/admin/submissions/$id'
+    | '/api/shopify/orders-create'
     | '/content-media/$id/$filename'
     | '/admin/content/'
     | '/admin/submissions/'
@@ -702,6 +738,8 @@ export interface RootRouteChildren {
   AdminChangePasswordRoute: typeof AdminChangePasswordRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminMediaRoute: typeof AdminMediaRoute
+  AdminPricingRoute: typeof AdminPricingRoute
+  AdminQuotesRoute: typeof AdminQuotesRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminVisualRoute: typeof AdminVisualRoute
@@ -711,6 +749,7 @@ export interface RootRouteChildren {
   ProductsIndexRoute: typeof ProductsIndexRoute
   AdminContentKeyRoute: typeof AdminContentKeyRouteWithChildren
   AdminSubmissionsIdRoute: typeof AdminSubmissionsIdRoute
+  ApiShopifyOrdersCreateRoute: typeof ApiShopifyOrdersCreateRoute
   ContentMediaIdFilenameRoute: typeof ContentMediaIdFilenameRoute
   AdminContentIndexRoute: typeof AdminContentIndexRoute
   AdminSubmissionsIndexRoute: typeof AdminSubmissionsIndexRoute
@@ -1007,6 +1046,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/quotes': {
+      id: '/admin/quotes'
+      path: '/admin/quotes'
+      fullPath: '/admin/quotes'
+      preLoaderRoute: typeof AdminQuotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/pricing': {
+      id: '/admin/pricing'
+      path: '/admin/pricing'
+      fullPath: '/admin/pricing'
+      preLoaderRoute: typeof AdminPricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/media': {
       id: '/admin/media'
       path: '/admin/media'
@@ -1054,6 +1107,13 @@ declare module '@tanstack/react-router' {
       path: '/content-media/$id/$filename'
       fullPath: '/content-media/$id/$filename'
       preLoaderRoute: typeof ContentMediaIdFilenameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shopify/orders-create': {
+      id: '/api/shopify/orders-create'
+      path: '/api/shopify/orders-create'
+      fullPath: '/api/shopify/orders-create'
+      preLoaderRoute: typeof ApiShopifyOrdersCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/submissions/$id': {
@@ -1145,6 +1205,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminChangePasswordRoute: AdminChangePasswordRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminMediaRoute: AdminMediaRoute,
+  AdminPricingRoute: AdminPricingRoute,
+  AdminQuotesRoute: AdminQuotesRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminVisualRoute: AdminVisualRoute,
@@ -1154,6 +1216,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsIndexRoute: ProductsIndexRoute,
   AdminContentKeyRoute: AdminContentKeyRouteWithChildren,
   AdminSubmissionsIdRoute: AdminSubmissionsIdRoute,
+  ApiShopifyOrdersCreateRoute: ApiShopifyOrdersCreateRoute,
   ContentMediaIdFilenameRoute: ContentMediaIdFilenameRoute,
   AdminContentIndexRoute: AdminContentIndexRoute,
   AdminSubmissionsIndexRoute: AdminSubmissionsIndexRoute,

@@ -26,8 +26,30 @@ import {
 import { shopifyAdmin } from "../shopify/admin.server";
 import { getServerConfig } from "../config.server";
 import { clearSession, useSession as getServerSessionManager } from "@tanstack/react-start/server";
+import {
+  getActiveShopifyCountryCode,
+  getShopifyLocalization,
+  selectShopifyMarketCountry,
+} from "../shopify/markets.server";
 
 const positiveQuantity = z.number().int().min(1).max(99);
+
+export const getStorefrontLocalization = createServerFn({ method: "GET" }).handler(() =>
+  getShopifyLocalization(),
+);
+
+export const selectStorefrontMarket = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      countryCode: z
+        .string()
+        .trim()
+        .length(2)
+        .transform((value) => value.toUpperCase()),
+      cartId: z.string().min(1).max(2048).optional(),
+    }),
+  )
+  .handler(({ data }) => selectShopifyMarketCountry(data.countryCode, data.cartId));
 
 export const getCollection = createServerFn({ method: "GET" })
   .inputValidator(
@@ -158,6 +180,14 @@ export const submitShopifyQuote = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }) => {
+    const marketCountry = getActiveShopifyCountryCode();
+    let marketCurrency: string | undefined;
+    try {
+      marketCurrency = (await getShopifyLocalization(marketCountry)).activeCountry.currency.isoCode;
+    } catch {
+      // The Admin API can still create the quote in shop currency if the
+      // Storefront localization endpoint is temporarily unavailable.
+    }
     let authenticatedCustomerId: string | undefined;
     try {
       const sessionData = await getCustomerAccessTokenSession();
@@ -172,6 +202,8 @@ export const submitShopifyQuote = createServerFn({ method: "POST" })
 
     const note = [
       "Website quote request",
+      `Storefront market: ${marketCountry}`,
+      marketCurrency ? `Presentment currency: ${marketCurrency}` : "",
       `Customer: ${data.firstName} ${data.lastName}`,
       data.company ? `Company: ${data.company}` : "",
       data.phone ? `Phone: ${data.phone}` : "",
@@ -203,11 +235,13 @@ export const submitShopifyQuote = createServerFn({ method: "POST" })
       {
         input: {
           ...(authenticatedCustomerId ? { customerId: authenticatedCustomerId } : {}),
+          ...(marketCurrency ? { presentmentCurrencyCode: marketCurrency } : {}),
           email: data.email,
           note,
           tags: ["Website quote request", "Awaiting sales review"],
           lineItems: data.lines,
           customAttributes: [
+            { key: "Storefront market", value: marketCountry },
             { key: "First name", value: data.firstName },
             { key: "Last name", value: data.lastName },
             ...(data.company ? [{ key: "Company", value: data.company }] : []),

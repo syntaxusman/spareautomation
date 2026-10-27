@@ -13,10 +13,16 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { getShopifyCart, getShopifyCustomer } from "@/lib/api/shopify.functions";
+import {
+  getShopifyCart,
+  getShopifyCustomer,
+  getStorefrontLocalization,
+  selectStorefrontMarket,
+} from "@/lib/api/shopify.functions";
 import { navTarget } from "@/lib/content/nav";
 import { useEditable } from "@/lib/content/edit-mode";
-import { getStoredCartId } from "@/lib/shopify/cart";
+import { clearStoredCartId, getStoredCartId } from "@/lib/shopify/cart";
+import type { ShopifyLocalization } from "@/lib/shopify/markets";
 import { useContent } from "@/lib/content/ContentContext";
 
 export function SiteHeader() {
@@ -30,6 +36,9 @@ export function SiteHeader() {
   const [customer, setCustomer] = useState<Awaited<ReturnType<typeof getShopifyCustomer>>>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [localization, setLocalization] = useState<ShopifyLocalization | null>(null);
+  const [marketBusy, setMarketBusy] = useState(false);
+  const [marketError, setMarketError] = useState("");
 
   useEffect(() => {
     setHydrated(true);
@@ -52,7 +61,15 @@ export function SiteHeader() {
         if (mounted) setCustomer(null);
       }
     }
-    void Promise.all([refreshCartCount(), checkAuth()]);
+    async function loadLocalization() {
+      try {
+        const nextLocalization = await getStorefrontLocalization();
+        if (mounted) setLocalization(nextLocalization);
+      } catch {
+        if (mounted) setMarketError("Market selection is temporarily unavailable.");
+      }
+    }
+    void Promise.all([refreshCartCount(), checkAuth(), loadLocalization()]);
     window.addEventListener("shopify-cart-updated", refreshCartCount);
     return () => {
       mounted = false;
@@ -61,6 +78,22 @@ export function SiteHeader() {
   }, []);
 
   const accountLabel = customer?.firstName || customer?.displayName || "Account";
+
+  async function changeMarket(countryCode: string) {
+    if (!countryCode || countryCode === localization?.activeCountry.isoCode) return;
+    setMarketBusy(true);
+    setMarketError("");
+    try {
+      const result = await selectStorefrontMarket({
+        data: { countryCode, cartId: getStoredCartId() },
+      });
+      if (result.resetCart) clearStoredCartId();
+      window.location.reload();
+    } catch {
+      setMarketError("We could not change market. Please try again.");
+      setMarketBusy(false);
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 min-w-0">
@@ -74,9 +107,37 @@ export function SiteHeader() {
       <div className="bg-charcoal-deep text-white/80">
         <div className="flex min-h-11 w-full min-w-0 items-center justify-between gap-3 px-4 font-mono text-[10px] uppercase tracking-[0.14em] md:min-h-9 md:px-6 md:text-[11px] md:tracking-[0.18em]">
           <div className="flex min-w-0 items-center gap-4 md:gap-6">
-            <span className="flex shrink-0 items-center gap-2">
-              <Globe aria-hidden="true" className="h-3 w-3 text-accent" /> UK / EN-GB / GBP
-            </span>
+            <div className="flex shrink-0 items-center gap-2">
+              <Globe aria-hidden="true" className="h-3 w-3 text-accent" />
+              <label htmlFor="storefront-market" className="sr-only">
+                Shopping country and currency
+              </label>
+              <select
+                id="storefront-market"
+                aria-label="Shopping country and currency"
+                aria-describedby={marketError ? "storefront-market-error" : undefined}
+                disabled={marketBusy || !localization}
+                value={localization?.activeCountry.isoCode ?? ""}
+                onChange={(event) => void changeMarket(event.target.value)}
+                className="max-w-[12rem] cursor-pointer bg-transparent py-2 pr-1 text-[10px] uppercase tracking-[0.14em] text-white outline-none disabled:cursor-wait disabled:opacity-70 md:text-[11px] md:tracking-[0.18em]"
+              >
+                {!localization ? <option value="">Loading market…</option> : null}
+                {localization?.availableCountries.map((country) => (
+                  <option
+                    key={country.isoCode}
+                    value={country.isoCode}
+                    className="bg-charcoal-deep"
+                  >
+                    {country.isoCode} / {country.currency.isoCode}
+                  </option>
+                ))}
+              </select>
+              {marketError ? (
+                <span id="storefront-market-error" className="sr-only" role="status">
+                  {marketError}
+                </span>
+              ) : null}
+            </div>
             <a
               href={`tel:${content.site.phoneHref}`}
               className="hidden min-h-7 items-center gap-2 text-white/70 hover:text-white md:flex"

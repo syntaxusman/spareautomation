@@ -7,6 +7,7 @@ import {
   shopifyImageUrl,
 } from "@/lib/shopify/format";
 import type { ShopifyProduct } from "@/lib/shopify/types";
+import { productImageWatermarkProps } from "@/lib/shopify/watermark";
 
 import { AddToCartButton } from "./AddToCartButton";
 
@@ -27,6 +28,7 @@ export function ProductCard({ product }: ProductCardProps) {
         className="block"
       >
         <div
+          {...(product.featuredImage ? productImageWatermarkProps() : {})}
           className={`relative aspect-square overflow-hidden bg-[oklch(0.96_0.005_250)] ${
             product.featuredImage ? "protected-image-frame" : ""
           }`}

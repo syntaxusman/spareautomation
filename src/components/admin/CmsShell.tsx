@@ -10,8 +10,10 @@ import {
   LogOut,
   Menu,
   MousePointerClick,
+  ReceiptText,
   Search,
   Settings,
+  Tags,
   Users,
 } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
@@ -299,6 +301,23 @@ function Nav({
             />
           </Section>
 
+          <Section heading="Commerce">
+            <NavLink
+              to="/admin/quotes"
+              icon={<ReceiptText />}
+              label="Quotations"
+              active={path.startsWith("/admin/quotes")}
+            />
+            {staff.role === "admin" ? (
+              <NavLink
+                to="/admin/pricing"
+                icon={<Tags />}
+                label="Bulk pricing"
+                active={path.startsWith("/admin/pricing")}
+              />
+            ) : null}
+          </Section>
+
           <Section
             heading="Content"
             headingAction={
@@ -449,6 +468,8 @@ function NavGroup({
   );
 }
 
+
+
 function NavLink({
   to,
   params,
@@ -551,5 +572,3 @@ function AccountMenu({ staff, onSignOut }: { staff: AdminSession; onSignOut: () 
     </DropdownMenu>
   );
 }
-
-

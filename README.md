@@ -1,5 +1,17 @@
 # Spares Automation Client Feedback Changes
 
+## Shopify Commerce Automation
+
+The CMS now includes staff quotation email management, admin-only percentage-based bulk product
+pricing, and automatic Shopify order invoice emails. Shopify setup, required access scopes, webhook
+registration, notification branding, and the safe pricing procedure are documented in
+[`SHOPIFY_COMMERCE_AUTOMATION.md`](./SHOPIFY_COMMERCE_AUTOMATION.md).
+
+The storefront is Shopify Markets-aware: enabled countries appear in the header selector, catalogue
+queries use Shopify country context, and cart buyer identity keeps regional prices and checkout
+currency aligned. Shopify product photos also receive an automatic, configurable visible copyright
+watermark without altering the source files stored in Shopify.
+
 ## UX, Accessibility, Commerce, And Platform Hardening
 
 The July UX audit remediation is now implemented while retaining the existing industrial visual direction.

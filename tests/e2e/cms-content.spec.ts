@@ -232,6 +232,8 @@ test.describe("CMS dashboard", () => {
     for (const label of [
       "Dashboard",
       "Submissions",
+      "Quotations",
+      "Bulk pricing",
       "Content",
       "Media",
       "Users",

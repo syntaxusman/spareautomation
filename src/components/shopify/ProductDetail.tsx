@@ -28,13 +28,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  addVat,
   formatMoney,
   isVariantPurchasable,
   shopifyImageUrl,
-  STANDARD_VAT_RATE,
 } from "@/lib/shopify/format";
 import type { ShopifyProduct, ShopifyVariant } from "@/lib/shopify/types";
+import { productImageWatermarkProps } from "@/lib/shopify/watermark";
 import { useContent } from "@/lib/content/ContentContext";
 import { useEditable } from "@/lib/content/edit-mode";
 
@@ -101,10 +100,10 @@ export function ProductDetail({ product }: ProductDetailProps) {
               <SpecBlock label="MPN / Range" value={mpnRange} />
             </div>
 
-            <div className="mt-6 grid max-w-2xl gap-px border border-rule bg-rule sm:grid-cols-2">
+            <div className="mt-6 max-w-2xl border border-rule bg-surface">
               <div className="bg-surface p-4">
                 <div className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-ink-muted">
-                  Excl. VAT
+                  Market price
                 </div>
                 <div className="mt-1 font-display text-2xl font-bold text-ink md:text-[1.75rem]">
                   {selectedVariantPurchasable && selectedVariant
@@ -116,21 +115,10 @@ export function ProductDetail({ product }: ProductDetailProps) {
                     Was {formatMoney(selectedVariant.compareAtPrice)}
                   </div>
                 ) : null}
-              </div>
-              <div className="bg-background p-4 shadow-[inset_3px_0_0_var(--color-accent)]">
-                <div className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-ink-muted">
-                  Incl. VAT ({Math.round(STANDARD_VAT_RATE * 100)}%)
-                </div>
-                <div className="mt-1 font-display text-2xl font-bold text-accent md:text-[1.75rem]">
-                  {selectedVariantPurchasable && selectedVariant
-                    ? formatMoney(addVat(selectedVariant.price))
-                    : "Request price"}
-                </div>
-                {selectedVariantPurchasable && selectedVariant?.compareAtPrice ? (
-                  <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-muted line-through">
-                    Was {formatMoney(addVat(selectedVariant.compareAtPrice))}
-                  </div>
-                ) : null}
+                <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+                  Currency and pricing follow your selected Shopify market. Taxes, duties, and
+                  delivery are confirmed at checkout.
+                </p>
               </div>
             </div>
 
@@ -305,6 +293,7 @@ function ProductGallery({
   return (
     <section className="bg-surface p-4 md:p-6 lg:p-8">
       <div
+        {...(activeImage ? productImageWatermarkProps() : {})}
         className={`relative aspect-[4/3] max-h-[620px] overflow-hidden bg-[oklch(0.96_0.005_250)] ${
           activeImage ? "protected-image-frame" : ""
         }`}
@@ -365,6 +354,7 @@ function ProductGallery({
         <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-5 md:gap-3">
           {gallery.map((image) => (
             <button
+              {...productImageWatermarkProps()}
               key={image.url}
               type="button"
               onClick={() => onSelectImage(image)}
@@ -435,6 +425,7 @@ function ProductGallery({
 
             <div className="relative min-h-0 flex-1 overflow-auto bg-[oklch(0.96_0.005_250)]">
               <div
+                {...productImageWatermarkProps()}
                 className="protected-image-frame relative min-h-full min-w-full"
                 style={{ width: `${zoom * 100}%`, height: `${zoom * 100}%` }}
               >
@@ -824,7 +815,6 @@ function YouTubeConsentPanel({
     </section>
   );
 }
-
 function SupportLink({
   href,
   icon: Icon,
@@ -849,6 +839,7 @@ function SupportLink({
   );
 }
 
+
 function SupportEmptyState({
   icon: Icon,
   title,
@@ -868,4 +859,3 @@ function SupportEmptyState({
     </div>
   );
 }
-

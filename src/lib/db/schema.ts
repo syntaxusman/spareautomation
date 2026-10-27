@@ -115,6 +115,27 @@ export const adminAuditLog = pgTable(
   (table) => [index("admin_audit_target_idx").on(table.targetType, table.targetId)],
 );
 
+/**
+ * Shopify can retry the same webhook delivery. Keeping the delivery id and
+ * processing state makes automatic invoice email sending idempotent across
+ * process restarts and deployments.
+ */
+export const shopifyWebhookDeliveries = pgTable(
+  "shopify_webhook_deliveries",
+  {
+    id: varchar("id", { length: 160 }).primaryKey(),
+    topic: varchar("topic", { length: 120 }).notNull(),
+    shopDomain: varchar("shop_domain", { length: 255 }).notNull(),
+    resourceId: varchar("resource_id", { length: 160 }),
+    status: varchar("status", { length: 24 }).notNull().default("processing"),
+    error: text("error"),
+    processedAt: timestamp("processed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("shopify_webhook_resource_idx").on(table.resourceId)],
+);
+
 export const submissions = pgTable(
   "submissions",
   {
@@ -175,6 +196,7 @@ export type Attachment = typeof attachments.$inferSelect;
 export type ContentDocument = typeof contentDocuments.$inferSelect;
 export type ContentRevision = typeof contentRevisions.$inferSelect;
 export type ContentMedia = typeof contentMedia.$inferSelect;
+export type ShopifyWebhookDelivery = typeof shopifyWebhookDeliveries.$inferSelect;
 
 export type SubmissionType = (typeof submissionType.enumValues)[number];
 export type SubmissionStatus = (typeof submissionStatus.enumValues)[number];

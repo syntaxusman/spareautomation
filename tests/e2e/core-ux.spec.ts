@@ -316,8 +316,10 @@ test("every product exposes tabbed support content and useful empty states", asy
   await page.waitForLoadState("networkidle");
   await expect(page.getByText("PayPal accepted", { exact: true })).toBeVisible();
   await expect(page.getByRole("img", { name: "PayPal", exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Excl. VAT", { exact: true })).toBeVisible();
-  await expect(page.getByText("Incl. VAT (20%)", { exact: true })).toBeVisible();
+  await expect(page.getByText("Market price", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(/Taxes, duties, and delivery are confirmed at checkout/),
+  ).toBeVisible();
 
   const protectedProductImage = page.getByRole("button", { name: /^Enlarge / }).locator("img");
   await expect(protectedProductImage).toHaveAttribute("draggable", "false");
@@ -331,26 +333,6 @@ test("every product exposes tabbed support content and useful empty states", asy
     .first()
     .evaluate((frame) => getComputedStyle(frame, "::after").content);
   expect(watermarkContent).toContain("SPARES AUTOMATION");
-
-  const exclusivePrice = Number(
-    (
-      await page
-        .getByText("Excl. VAT", { exact: true })
-        .locator("..")
-        .locator(".font-display")
-        .textContent()
-    )?.replace(/[^\d.]/g, ""),
-  );
-  const inclusivePrice = Number(
-    (
-      await page
-        .getByText("Incl. VAT (20%)", { exact: true })
-        .locator("..")
-        .locator(".font-display")
-        .textContent()
-    )?.replace(/[^\d.]/g, ""),
-  );
-  expect(inclusivePrice).toBeCloseTo(exclusivePrice * 1.2, 2);
 
   const enlargeButton = page.getByRole("button", { name: /^Enlarge / });
   await expect(enlargeButton).toHaveText("");

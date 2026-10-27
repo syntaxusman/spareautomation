@@ -1,6 +1,7 @@
 import { CART_FRAGMENT, PRODUCT_CARD_FRAGMENT, PRODUCT_DETAIL_FRAGMENT } from "./fragments";
 import { shopifyStorefront } from "./storefront.server";
 import type { ShopifyCart, ShopifyCollection, ShopifyProduct } from "./types";
+import { getActiveShopifyCountryCode } from "./markets.server";
 
 type Connection<T> = {
   nodes: T[];
@@ -254,12 +255,14 @@ function assertAndNormalizeCart(cart: CartConnectionShape | null, errors: CartUs
 }
 
 export async function getCollectionByHandle(handle: string, first = 24) {
+  const country = getActiveShopifyCountryCode();
   const data = await shopifyStorefront<{
     collection: CollectionConnectionShape | null;
   }>(
     `#graphql
       ${PRODUCT_CARD_FRAGMENT}
-      query CollectionByHandle($handle: String!, $first: Int!) {
+      query CollectionByHandle($handle: String!, $first: Int!, $country: CountryCode!)
+        @inContext(country: $country) {
         collection(handle: $handle) {
           id
           handle
@@ -279,7 +282,7 @@ export async function getCollectionByHandle(handle: string, first = 24) {
         }
       }
     `,
-    { handle, first },
+    { handle, first, country },
   );
 
   if (!data.collection) return null;
@@ -287,12 +290,14 @@ export async function getCollectionByHandle(handle: string, first = 24) {
 }
 
 export async function getProducts(first = 24, query?: string) {
+  const country = getActiveShopifyCountryCode();
   const data = await shopifyStorefront<{
     products: Connection<ProductConnectionShape>;
   }>(
     `#graphql
       ${PRODUCT_CARD_FRAGMENT}
-      query Products($first: Int!, $query: String) {
+      query Products($first: Int!, $query: String, $country: CountryCode!)
+        @inContext(country: $country) {
         products(first: $first, query: $query, sortKey: CREATED_AT, reverse: true) {
           nodes {
             ...ProductCardFields
@@ -300,19 +305,21 @@ export async function getProducts(first = 24, query?: string) {
         }
       }
     `,
-    { first, query },
+    { first, query, country },
   );
 
   return data.products.nodes.map(normalizeProduct);
 }
 
 export async function getProductsWithResources(first = 100) {
+  const country = getActiveShopifyCountryCode();
   const data = await shopifyStorefront<{
     products: Connection<ProductConnectionShape>;
   }>(
     `#graphql
       ${PRODUCT_DETAIL_FRAGMENT}
-      query ProductsWithResources($first: Int!) {
+      query ProductsWithResources($first: Int!, $country: CountryCode!)
+        @inContext(country: $country) {
         products(first: $first, sortKey: TITLE) {
           nodes {
             ...ProductDetailFields
@@ -320,43 +327,51 @@ export async function getProductsWithResources(first = 100) {
         }
       }
     `,
-    { first },
+    { first, country },
   );
 
   return data.products.nodes.map(normalizeProduct);
 }
 
 export async function getProductsPage(first = 48, query?: string, after?: string) {
+  const country = getActiveShopifyCountryCode();
   const data = await shopifyStorefront<{
     products: Connection<ProductConnectionShape> & { pageInfo: PageInfo };
   }>(
     `#graphql
       ${PRODUCT_CARD_FRAGMENT}
-      query ProductsPage($first: Int!, $query: String, $after: String) {
+      query ProductsPage(
+        $first: Int!
+        $query: String
+        $after: String
+        $country: CountryCode!
+      ) @inContext(country: $country) {
         products(first: $first, query: $query, after: $after, sortKey: CREATED_AT, reverse: true) {
           nodes { ...ProductCardFields }
           pageInfo { hasNextPage endCursor }
         }
       }
     `,
-    { first, query, after },
+    { first, query, after, country },
   );
   return { products: data.products.nodes.map(normalizeProduct), pageInfo: data.products.pageInfo };
 }
 
 export async function getProductByHandle(handle: string) {
+  const country = getActiveShopifyCountryCode();
   const data = await shopifyStorefront<{
     product: ProductConnectionShape | null;
   }>(
     `#graphql
       ${PRODUCT_DETAIL_FRAGMENT}
-      query ProductByHandle($handle: String!) {
+      query ProductByHandle($handle: String!, $country: CountryCode!)
+        @inContext(country: $country) {
         product(handle: $handle) {
           ...ProductDetailFields
         }
       }
     `,
-    { handle },
+    { handle, country },
   );
 
   return data.product ? normalizeProduct(data.product) : null;
@@ -379,6 +394,7 @@ export async function getCart(cartId: string) {
 }
 
 export async function createCart(variantId: string, quantity: number) {
+  const country = getActiveShopifyCountryCode();
   const data = await shopifyStorefront<{
     cartCreate: {
       cart: CartConnectionShape | null;
@@ -387,8 +403,13 @@ export async function createCart(variantId: string, quantity: number) {
   }>(
     `#graphql
       ${CART_FRAGMENT}
-      mutation CreateCart($variantId: ID!, $quantity: Int!) {
-        cartCreate(input: { lines: [{ merchandiseId: $variantId, quantity: $quantity }] }) {
+      mutation CreateCart($variantId: ID!, $quantity: Int!, $country: CountryCode!) {
+        cartCreate(
+          input: {
+            buyerIdentity: { countryCode: $country }
+            lines: [{ merchandiseId: $variantId, quantity: $quantity }]
+          }
+        ) {
           cart {
             ...CartFields
           }
@@ -399,7 +420,7 @@ export async function createCart(variantId: string, quantity: number) {
         }
       }
     `,
-    { variantId, quantity },
+    { variantId, quantity, country },
   );
 
   return assertAndNormalizeCart(data.cartCreate.cart, data.cartCreate.userErrors);
@@ -742,12 +763,18 @@ export async function getCustomer(customerAccessToken: string) {
 }
 
 export async function getCollectionProductsPage(handle: string, first = 48, after?: string) {
+  const country = getActiveShopifyCountryCode();
   const data = await shopifyStorefront<{
     collection: { products: Connection<ProductConnectionShape> & { pageInfo: PageInfo } } | null;
   }>(
     `#graphql
       ${PRODUCT_CARD_FRAGMENT}
-      query CollectionProductsPage($handle: String!, $first: Int!, $after: String) {
+      query CollectionProductsPage(
+        $handle: String!
+        $first: Int!
+        $after: String
+        $country: CountryCode!
+      ) @inContext(country: $country) {
         collection(handle: $handle) {
           products(first: $first, after: $after, sortKey: CREATED) {
             nodes { ...ProductCardFields }
@@ -756,7 +783,7 @@ export async function getCollectionProductsPage(handle: string, first = 48, afte
         }
       }
     `,
-    { handle, first, after },
+    { handle, first, after, country },
   );
 
   if (!data.collection) {
