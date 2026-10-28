@@ -1,0 +1,21 @@
+# Shopify CLI configuration for the agency-owned CustomFrontend app.
+# Keep this separate from the Store Sync app configuration.
+
+client_id = "d228d1ae1a5128b99e97a2f94cf928ae"
+application_url = "https://spareautomation.web-testlink.com"
+embedded = false
+name = "CustomFrontend"
+
+[access_scopes]
+scopes = "read_products,write_products,read_publications,write_publications,read_draft_orders,write_draft_orders,read_orders,write_orders,read_customers,write_customers"
+optional_scopes = []
+use_legacy_install_flow = true
+
+[auth]
+redirect_urls = [
+  "https://spares-automation.co.uk/api/shopify/oauth/callback",
+  "https://spareautomation.web-testlink.com/api/shopify/oauth/callback"
+]
+
+[webhooks]
+api_version = "2026-07"

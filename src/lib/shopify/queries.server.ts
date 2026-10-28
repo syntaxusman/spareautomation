@@ -1,4 +1,9 @@
-import { CART_FRAGMENT, PRODUCT_CARD_FRAGMENT, PRODUCT_DETAIL_FRAGMENT } from "./fragments";
+import {
+  CART_FRAGMENT,
+  PRODUCT_CARD_FRAGMENT,
+  PRODUCT_DETAIL_FRAGMENT,
+  PRODUCT_DETAIL_PUBLIC_FRAGMENT,
+} from "./fragments";
 import { shopifyStorefront } from "./storefront.server";
 import type { ShopifyCart, ShopifyCollection, ShopifyProduct } from "./types";
 import { getActiveShopifyCountryCode } from "./markets.server";
@@ -374,7 +379,27 @@ export async function getProductByHandle(handle: string) {
     { handle, country },
   );
 
-  return data.product ? normalizeProduct(data.product) : null;
+  if (data.product) return normalizeProduct(data.product);
+
+  // Tokenless Storefront access can read the product itself but not its custom
+  // metafields. Retry the public portion so a bad optional token cannot turn a
+  // valid product URL into a 404 while credentials are being rotated.
+  const publicData = await shopifyStorefront<{
+    product: ProductConnectionShape | null;
+  }>(
+    `#graphql
+      ${PRODUCT_DETAIL_PUBLIC_FRAGMENT}
+      query PublicProductByHandle($handle: String!, $country: CountryCode!)
+        @inContext(country: $country) {
+        product(handle: $handle) {
+          ...ProductDetailPublicFields
+        }
+      }
+    `,
+    { handle, country },
+  );
+
+  return publicData.product ? normalizeProduct(publicData.product) : null;
 }
 
 export async function getCart(cartId: string) {

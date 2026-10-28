@@ -71,16 +71,22 @@ Create or update the store's custom app in Shopify's Dev Dashboard and grant the
 - `read_orders`, `write_orders` — the order-created webhook and automatic invoice email.
 - Keep the existing customer scopes required by credit-account syncing.
 
-Release the new app version, reinstall or approve the changed access on the store if Shopify asks,
-and place the resulting Admin API token in `SHOPIFY_ADMIN_ACCESS_TOKEN`.
+Release the new app version, deploy the website, then sign in to the website CMS and open
+**Commerce â†’ Bulk pricing â†’ Connect Shopify**. The store owner approves CustomFrontend once.
+Shopify returns an offline Admin API token to the website callback; the application encrypts it
+with `APP_SESSION_SECRET` and stores it in PostgreSQL. A manually copied
+`SHOPIFY_ADMIN_ACCESS_TOKEN` is therefore optional. This authorization-code installation is the
+required flow when the Shopify app and client store belong to different organizations.
 
 Set these production variables in Coolify:
 
 ```text
 SHOPIFY_STORE_DOMAIN=permanent-store-domain.myshopify.com
 SHOPIFY_DEFAULT_COUNTRY=GB
-SHOPIFY_ADMIN_ACCESS_TOKEN=...
+SHOPIFY_ADMIN_ACCESS_TOKEN=
 SHOPIFY_ADMIN_API_VERSION=2026-07
+SHOPIFY_CLIENT_ID=...
+SHOPIFY_CLIENT_SECRET=...
 SHOPIFY_APP_URL=https://spares-automation.co.uk
 SHOPIFY_WEBHOOK_SECRET=...
 VITE_PRODUCT_IMAGE_WATERMARK_ENABLED=true
@@ -88,12 +94,14 @@ VITE_PRODUCT_IMAGE_WATERMARK_TEXT=© SPARES AUTOMATION
 ```
 
 `SHOPIFY_WEBHOOK_SECRET` is the app client secret used to sign webhook deliveries. It is not the
-Admin API access token. Keep both values server-only.
+Admin API access token. Keep both values server-only. The OAuth callback must be listed in the
+CustomFrontend app's allowed redirect URLs.
 
 ## Register the automatic invoice webhook
 
-After the updated site is deployed and reachable over HTTPS, preview and then register the
-shop-specific webhook:
+The Shopify connection callback automatically registers the shop-specific `ORDERS_CREATE` webhook.
+The command-line setup remains available as a diagnostic/manual fallback when a static Admin token
+has been supplied:
 
 ```bash
 npm run shopify:setup-automation

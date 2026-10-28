@@ -19,15 +19,20 @@ import process from "node:process";
 export function getServerConfig() {
   return {
     nodeEnv: process.env.NODE_ENV,
+    appSessionSecret: process.env.APP_SESSION_SECRET,
     shopifyStoreDomain: process.env.SHOPIFY_STORE_DOMAIN,
     shopifyStorefrontAccessToken: process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN,
     shopifyStorefrontPrivateAccessToken: process.env.SHOPIFY_STOREFRONT_PRIVATE_ACCESS_TOKEN,
     shopifyStorefrontApiVersion: process.env.SHOPIFY_STOREFRONT_API_VERSION ?? "2026-01",
     shopifyDefaultCountry: process.env.SHOPIFY_DEFAULT_COUNTRY ?? "GB",
+    shopifyAdminStoreDomain:
+      process.env.SHOPIFY_ADMIN_STORE_DOMAIN ?? process.env.SHOPIFY_STORE_DOMAIN,
     shopifyAdminAccessToken: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN,
     shopifyAdminApiVersion: process.env.SHOPIFY_ADMIN_API_VERSION ?? "2026-07",
-    // Client secret from the Shopify app. Used only to authenticate incoming
-    // webhook bodies; this is not the Admin API access token.
+    // Dev Dashboard apps exchange these credentials for a short-lived Admin
+    // API token when no pre-generated access token has been configured.
+    shopifyClientId: process.env.SHOPIFY_CLIENT_ID,
+    shopifyClientSecret: process.env.SHOPIFY_CLIENT_SECRET,
     shopifyWebhookSecret: process.env.SHOPIFY_WEBHOOK_SECRET,
     shopifyAppUrl: process.env.SHOPIFY_APP_URL,
 

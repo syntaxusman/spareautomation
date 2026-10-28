@@ -118,6 +118,22 @@ export const PRODUCT_DETAIL_FRAGMENT = `#graphql
   }
 `;
 
+export const PRODUCT_DETAIL_PUBLIC_FRAGMENT = `#graphql
+  ${PRODUCT_CARD_FRAGMENT}
+  fragment ProductDetailPublicFields on Product {
+    ...ProductCardFields
+    descriptionHtml
+    images(first: 8) {
+      nodes {
+        url
+        altText
+        width
+        height
+      }
+    }
+  }
+`;
+
 export const CART_FRAGMENT = `#graphql
   fragment CartFields on Cart {
     id

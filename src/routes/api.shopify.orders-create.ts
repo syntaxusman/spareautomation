@@ -50,8 +50,10 @@ export const Route = createFileRoute("/api/shopify/orders-create")({
 
         const topic = request.headers.get("x-shopify-topic")?.toLowerCase();
         const shopDomain = normalizeShopDomain(request.headers.get("x-shopify-shop-domain"));
-        const expectedShop = normalizeShopDomain(config.shopifyStoreDomain);
-        if (topic !== "orders/create" || !shopDomain || shopDomain !== expectedShop) {
+        const expectedShops = [config.shopifyStoreDomain, config.shopifyAdminStoreDomain]
+          .map(normalizeShopDomain)
+          .filter(Boolean);
+        if (topic !== "orders/create" || !shopDomain || !expectedShops.includes(shopDomain)) {
           return new Response("Unexpected webhook source", { status: 403 });
         }
 

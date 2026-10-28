@@ -15,7 +15,7 @@ export type ShopifyVariant = {
   title: string;
   sku: string | null;
   availableForSale: boolean;
-  quantityAvailable: number | null;
+  quantityAvailable?: number | null;
   price: ShopifyMoney;
   compareAtPrice: ShopifyMoney | null;
   selectedOptions: Array<{ name: string; value: string }>;

@@ -203,15 +203,19 @@ function PricingPage() {
               ) : catalogueError ? (
                 <div className="p-4 text-center">
                   <p className="text-sm text-destructive">{catalogueError}</p>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="mt-3"
-                    onClick={() => void loadProducts()}
-                  >
-                    <RefreshCw /> Try again
-                  </Button>
+                  <div className="mt-3 flex flex-wrap justify-center gap-2">
+                    <Button asChild size="sm">
+                      <a href="/api/shopify/oauth/start">Connect Shopify</a>
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => void loadProducts()}
+                    >
+                      <RefreshCw /> Try again
+                    </Button>
+                  </div>
                 </div>
               ) : visibleProducts.length === 0 ? (
                 <div className="flex min-h-40 flex-col items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground">

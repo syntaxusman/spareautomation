@@ -62,6 +62,8 @@ import { Route as ContentMediaIdFilenameRouteImport } from './routes/content-med
 import { Route as ApiShopifyOrdersCreateRouteImport } from './routes/api.shopify.orders-create'
 import { Route as AdminSubmissionsIdRouteImport } from './routes/admin/submissions.$id'
 import { Route as AdminContentKeyRouteImport } from './routes/admin/content.$key'
+import { Route as ApiShopifyOauthStartRouteImport } from './routes/api.shopify.oauth.start'
+import { Route as ApiShopifyOauthCallbackRouteImport } from './routes/api.shopify.oauth.callback'
 import { Route as AdminContentKeyPreviewRouteImport } from './routes/admin/content.$key.preview'
 import { Route as AccountResetIdTokenRouteImport } from './routes/account_.reset.$id.$token'
 import { Route as AccountActivateIdTokenRouteImport } from './routes/account_.activate.$id.$token'
@@ -331,6 +333,16 @@ const AdminContentKeyRoute = AdminContentKeyRouteImport.update({
   path: '/admin/content/$key',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiShopifyOauthStartRoute = ApiShopifyOauthStartRouteImport.update({
+  id: '/api/shopify/oauth/start',
+  path: '/api/shopify/oauth/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopifyOauthCallbackRoute = ApiShopifyOauthCallbackRouteImport.update({
+  id: '/api/shopify/oauth/callback',
+  path: '/api/shopify/oauth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminContentKeyPreviewRoute = AdminContentKeyPreviewRouteImport.update({
   id: '/preview',
   path: '/preview',
@@ -404,6 +416,8 @@ export interface FileRoutesByFullPath {
   '/account/activate/$id/$token': typeof AccountActivateIdTokenRoute
   '/account/reset/$id/$token': typeof AccountResetIdTokenRoute
   '/admin/content/$key/preview': typeof AdminContentKeyPreviewRoute
+  '/api/shopify/oauth/callback': typeof ApiShopifyOauthCallbackRoute
+  '/api/shopify/oauth/start': typeof ApiShopifyOauthStartRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -462,6 +476,8 @@ export interface FileRoutesByTo {
   '/account/activate/$id/$token': typeof AccountActivateIdTokenRoute
   '/account/reset/$id/$token': typeof AccountResetIdTokenRoute
   '/admin/content/$key/preview': typeof AdminContentKeyPreviewRoute
+  '/api/shopify/oauth/callback': typeof ApiShopifyOauthCallbackRoute
+  '/api/shopify/oauth/start': typeof ApiShopifyOauthStartRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -521,6 +537,8 @@ export interface FileRoutesById {
   '/account_/activate/$id/$token': typeof AccountActivateIdTokenRoute
   '/account_/reset/$id/$token': typeof AccountResetIdTokenRoute
   '/admin/content/$key/preview': typeof AdminContentKeyPreviewRoute
+  '/api/shopify/oauth/callback': typeof ApiShopifyOauthCallbackRoute
+  '/api/shopify/oauth/start': typeof ApiShopifyOauthStartRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -581,6 +599,8 @@ export interface FileRouteTypes {
     | '/account/activate/$id/$token'
     | '/account/reset/$id/$token'
     | '/admin/content/$key/preview'
+    | '/api/shopify/oauth/callback'
+    | '/api/shopify/oauth/start'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -639,6 +659,8 @@ export interface FileRouteTypes {
     | '/account/activate/$id/$token'
     | '/account/reset/$id/$token'
     | '/admin/content/$key/preview'
+    | '/api/shopify/oauth/callback'
+    | '/api/shopify/oauth/start'
   id:
     | '__root__'
     | '/'
@@ -697,6 +719,8 @@ export interface FileRouteTypes {
     | '/account_/activate/$id/$token'
     | '/account_/reset/$id/$token'
     | '/admin/content/$key/preview'
+    | '/api/shopify/oauth/callback'
+    | '/api/shopify/oauth/start'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -755,6 +779,8 @@ export interface RootRouteChildren {
   AdminSubmissionsIndexRoute: typeof AdminSubmissionsIndexRoute
   AccountActivateIdTokenRoute: typeof AccountActivateIdTokenRoute
   AccountResetIdTokenRoute: typeof AccountResetIdTokenRoute
+  ApiShopifyOauthCallbackRoute: typeof ApiShopifyOauthCallbackRoute
+  ApiShopifyOauthStartRoute: typeof ApiShopifyOauthStartRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1130,6 +1156,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminContentKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/shopify/oauth/start': {
+      id: '/api/shopify/oauth/start'
+      path: '/api/shopify/oauth/start'
+      fullPath: '/api/shopify/oauth/start'
+      preLoaderRoute: typeof ApiShopifyOauthStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shopify/oauth/callback': {
+      id: '/api/shopify/oauth/callback'
+      path: '/api/shopify/oauth/callback'
+      fullPath: '/api/shopify/oauth/callback'
+      preLoaderRoute: typeof ApiShopifyOauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/content/$key/preview': {
       id: '/admin/content/$key/preview'
       path: '/preview'
@@ -1222,6 +1262,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSubmissionsIndexRoute: AdminSubmissionsIndexRoute,
   AccountActivateIdTokenRoute: AccountActivateIdTokenRoute,
   AccountResetIdTokenRoute: AccountResetIdTokenRoute,
+  ApiShopifyOauthCallbackRoute: ApiShopifyOauthCallbackRoute,
+  ApiShopifyOauthStartRoute: ApiShopifyOauthStartRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

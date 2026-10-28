@@ -1,9 +1,57 @@
 import { createHash } from "node:crypto";
 
+import { getServerConfig } from "../config.server";
 import { shopifyAdmin } from "./admin.server";
 import { adjustPriceByPercentage } from "./commerce";
 
 type Money = { amount: string; currencyCode: string };
+
+export async function ensureOrderInvoiceWebhook() {
+  const appUrl = getServerConfig().shopifyAppUrl?.trim().replace(/\/$/, "");
+  if (!appUrl) throw new Error("SHOPIFY_APP_URL is not configured.");
+  const uri = `${appUrl}/api/shopify/orders-create`;
+  const current = await shopifyAdmin<{
+    webhookSubscriptions: { nodes: Array<{ id: string; topic: string; uri: string }> };
+  }>(`#graphql
+    query OrderAutomationWebhooks {
+      webhookSubscriptions(first: 100) {
+        nodes { id topic uri }
+      }
+    }
+  `);
+  const matching = current.webhookSubscriptions.nodes.find(
+    (item) => item.topic === "ORDERS_CREATE" && item.uri === uri,
+  );
+  if (matching) return matching;
+
+  const result = await shopifyAdmin<{
+    webhookSubscriptionCreate: {
+      webhookSubscription: { id: string; topic: string; uri: string } | null;
+      userErrors: Array<{ message: string }>;
+    };
+  }>(
+    `#graphql
+      mutation RegisterOrderInvoiceWebhook(
+        $topic: WebhookSubscriptionTopic!
+        $subscription: WebhookSubscriptionInput!
+      ) {
+        webhookSubscriptionCreate(topic: $topic, webhookSubscription: $subscription) {
+          webhookSubscription { id topic uri }
+          userErrors { message }
+        }
+      }
+    `,
+    { topic: "ORDERS_CREATE", subscription: { uri, format: "JSON" } },
+  );
+  const created = result.webhookSubscriptionCreate;
+  if (created.userErrors.length || !created.webhookSubscription) {
+    throw new Error(
+      created.userErrors.map((item) => item.message).join("; ") ||
+        "The order invoice webhook could not be created.",
+    );
+  }
+  return created.webhookSubscription;
+}
 
 export type AdminQuoteLine = {
   name: string;

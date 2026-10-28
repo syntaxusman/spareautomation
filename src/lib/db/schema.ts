@@ -136,6 +136,19 @@ export const shopifyWebhookDeliveries = pgTable(
   (table) => [index("shopify_webhook_resource_idx").on(table.resourceId)],
 );
 
+/**
+ * Offline Admin API credentials created by Shopify's authorization-code flow.
+ * Tokens are encrypted before storage; the database never contains plaintext
+ * Shopify access tokens.
+ */
+export const shopifyAppInstallations = pgTable("shopify_app_installations", {
+  shopDomain: varchar("shop_domain", { length: 255 }).primaryKey(),
+  encryptedAccessToken: text("encrypted_access_token").notNull(),
+  scopes: text("scopes").notNull().default(""),
+  installedAt: timestamp("installed_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const submissions = pgTable(
   "submissions",
   {
@@ -197,6 +210,7 @@ export type ContentDocument = typeof contentDocuments.$inferSelect;
 export type ContentRevision = typeof contentRevisions.$inferSelect;
 export type ContentMedia = typeof contentMedia.$inferSelect;
 export type ShopifyWebhookDelivery = typeof shopifyWebhookDeliveries.$inferSelect;
+export type ShopifyAppInstallation = typeof shopifyAppInstallations.$inferSelect;
 
 export type SubmissionType = (typeof submissionType.enumValues)[number];
 export type SubmissionStatus = (typeof submissionStatus.enumValues)[number];
